@@ -1,0 +1,2945 @@
+IEEE-11073-20101 DEFINITIONS ::= BEGIN
+
+--
+-- 8-bit unsigned integer
+--
+INT-U8 ::= INTEGER (0..255)
+--
+-- 8-bit signed integer
+--
+INT-I8 ::= INTEGER (-128..127)
+--
+-- 16-bit unsigned integer
+--
+INT-U16 ::= INTEGER (0..65535)
+--
+-- 16-bit signed integer
+--
+INT-I16 ::= INTEGER (-32768..32767)
+--
+-- 32-bit unsigned integer
+--
+INT-U32 ::= INTEGER (0..4294967295)
+--
+-- 32-bit signed integer
+--
+INT-I32 ::= INTEGER (-2147483648..2147483647)
+--
+-- 16-bit bit string
+--
+
+--
+-- Unless otherwise stated, all unused (reserved) bits in any of the BITS-* constructs shall be set to zero0
+-- by
+-- the sender and unless otherwise stated, shall be ignored by the receiver if they are set to 1.
+--
+
+--
+-- 8-bit bit string
+--
+BITS-8 ::= BIT STRING (SIZE(8))
+
+--
+-- 16-bit bit string
+--
+BITS-16 ::= BIT STRING (SIZE(16))
+
+--
+-- 32-bit bit string
+--
+BITS-32 ::= BIT STRING (SIZE(32))
+
+
+
+--
+-- OID type as defined in nomenclature
+-- (do not confuse with ASN.1 OID)
+--
+OID-Type ::= INT-U16 -- 16-bit integer type
+
+--
+-- Private OID
+--
+PrivateOid ::= INT-U16
+
+--
+-- handle
+--
+HANDLE ::= INT-U16
+
+--
+-- Instance Number
+--
+InstNumber ::= INT-U16
+
+
+-- The sender should limit the number of messages outstanding simultaneously.
+-- In fact, the receiver might not be able to handle more than one message at a time.
+InvokeIDType ::= INT-U16
+
+
+--
+-- The following nomenclature partitions exist
+--
+NomPartition ::= INTEGER {
+nom-part-unspec(0), -- unspecified
+nom-part-obj(1), -- object-oriented partition
+nom-part-metric(2), -- metric [supervisory control and data acquisition
+-- (SCADA)] partition
+nom-part-alert(3), -- alerts/events partition
+nom-part-dim(4), -- dimensions partition
+nom-part-vattr(5), -- virtual attribute partition for Operation objects
+nom-part-pgrp(6), -- parameter group ID partition
+nom-part-sites(7), -- measurement and body site locations
+nom-part-infrastruct(8), -- infrastructure elements partition
+nom-part-fef(9), -- file exchange format partition
+nom-part-ecg-extn(10), -- ECG extensions partition
+nom-part-idco-extn(11), -- implantable cardiac device observation extensions
+nom-part-phd-dm(128), -- disease management
+nom-part-phd-hf(129), -- health and fitness
+nom-part-phd-ai(130), -- aging independently
+nom-part-ret-code(255), -- return codes partition
+nom-part-ext-nom(256), -- IDs of other nomenclatures and dictionaries
+nom-part-priv(1024) -- private partition
+}
+--(0..65535)
+--
+-- Type ID
+--
+TYPE ::= SEQUENCE {
+partition NomPartition,
+code OID-Type
+}
+
+--
+AVA-Type ::= SEQUENCE {
+attribute-id OID-Type,
+attribute-value ANY DEFINED BY attribute-id
+}
+
+--
+AttributeList ::= SEQUENCE OF AVA-Type
+
+--
+AttributeIdList ::= SEQUENCE OF OID-Type
+
+-- 32-bit float type; the integer type is a placeholder only
+--
+FLOAT-Type ::= INT-U32
+
+--
+-- 16-bit float type; the integer type is a placeholder only
+--
+SFLOAT-Type ::= INT-U16
+
+--
+-- Relative time has a resolution of 125 us (LSB), which is sufficient for sampling
+-- rates up to 8 kHz and spans time periods up to 6.2 days.
+-- The value of 0xFFFFFFFF shall be used when an agent is required to send a relative time in an ASN.1
+-- structure but does not support a relative time clock.
+--
+RelativeTime ::= INT-U32
+
+--
+-- High-resolution time has a resolution of 1 us and can represent time
+-- spans of over 584 000 years. Theoretically, this could be modeled as an INT-U64;
+-- however, due to limitations in the ASN.1 compilers, embedded devices support
+-- for 64-bit integers, and the MDER specifications, an OCTET STRING was
+-- used inste.................................................ad.
+--
+HighResRelativeTime ::= OCTET STRING (SIZE(8))
+
+--
+-- Absolute time adjust has a resolution of 1/100 of a second and can represent time
+-- adjustments of plus or minus 44 505 years. Theoretically, this could be modeled as an INT-I48;
+-- however, due to potential limitations in ASN.1 compilers, embedded devices support
+-- for 48-bit integers, and the MDER specifications, an OCTET STRING was
+-- used instead.
+--
+AbsoluteTimeAdjust ::= OCTET STRING (SIZE(6))
+
+--
+AbsoluteTime ::= SEQUENCE {
+century INT-U8,
+year INT-U8,
+month INT-U8,
+day INT-U8,
+hour INT-U8,
+minute INT-U8,
+second INT-U8,
+sec-fractions INT-U8 -- 1/100 of a second if available
+}
+
+--
+OperationalState ::= INTEGER {
+disabled(0),
+enabled(1),
+notAvailable(2)
+}
+--(0..65535)
+
+
+--
+--
+-- SystemModel contains manufacturer name and manufacturer specific model information.
+-- While model-number field name suggests a number, there is no requirement that the field
+-- contains numeric values. The format of the manufacturer name and model number strings
+-- are decided upon by the agent vendor, but shall be printable ASCII.
+--
+SystemModel ::= SEQUENCE {
+manufacturer OCTET STRING, -- string size shall be even
+model-number OCTET STRING -- string size shall be even
+}
+
+--
+-- ProductionSpec deals with serial numbers, part numbers, revisions, etc.
+-- Note that an agent may have multiple components; therefore, the prod-spec should be an
+-- ASCII printable string of the format “spec-type: vendor-specified-str” where spec-type is
+-- replaced by the string representation of spec-type. The format of the vendor-specified-str
+-- is determined by the vendor.
+--
+ProductionSpec ::= SEQUENCE OF ProdSpecEntry
+ProdSpecEntry ::= SEQUENCE {
+spec-type INTEGER {
+unspecified(0),
+serial-number(1),
+part-number(2),
+hw-revision(3),
+sw-revision(4),
+fw-revision(5),
+protocol-revision(6),
+prod-spec-gmdn(7) -- see note on GMDN below (0..65535)
+},
+component-id PrivateOid,
+prod-spec OCTET STRING -- string size shall be even
+}
+
+--
+-- PowerStatus defines whether device is on battery or on mains. Upper bits define the charging
+-- state.
+--
+PowerStatus ::= BIT STRING {
+onMains(0),
+onBattery(1),
+chargingFull(8),
+chargingTrickle(9),
+chargingOff(10)
+}(SIZE(16))
+
+--
+--
+-- All measures about the battery are values with their dimensions. See the description
+-- of Remaining-Battery-Time in Table 2 for a description of legal units.
+--
+BatMeasure ::= SEQUENCE {
+value FLOAT-Type,
+unit OID-Type -- from nom-part-dim partition
+}
+
+--
+-- Measurement-Status attribute defines the state of the measurement; used by derived classes
+--
+MeasurementStatus ::= BIT STRING {
+invalid(0),
+questionable(1),
+not-available(2),
+calibration-ongoing(3),
+test-data(4),
+demo-data(5),
+validated-data(8), -- relevant, e.g., in an archive
+early-indication(9), -- early estimate of value
+msmt-ongoing(10), -- indicates that a new measurement is just being taken
+-- (episodic)
+msmt-state-in-alarm(14), -- indicates that the metric has an active alarm condition
+msmt-state-al-inhibited(15) -- metric supports alarming, and alarms are turned off
+-- (optional)
+}(SIZE(16))
+
+--
+-- Nu-Observed-Value attribute always includes identification, state, and dimension to ensure
+-- consistency with minimal overhead
+--
+NuObsValue ::= SEQUENCE {
+metric-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+state MeasurementStatus,
+-- defined in Metric base class
+unit-code OID-Type, -- from dimensions nomenclature partition
+value FLOAT-Type
+}
+
+-- Observed value for compound numerics
+--
+NuObsValueCmp ::= SEQUENCE OF NuObsValue
+
+--
+-- SaSpec describes the sample array.
+SaSpec ::= SEQUENCE {
+array-size INT-U16, -- number of samples per metric update period
+sample-type SampleType,
+flags SaFlags
+}
+
+--Sample Type, describes one sample in the observed value array 
+
+SampleType ::= SEQUENCE { 
+    sample-size INT-U8,         -- e.g. 8 for 8-bit samples, 16 for 16-bit samples, 
+                -- shall be divisible by 8 
+    significant-bits INTEGER    -- defines significant bits in one sample 
+    { signed-samples(255)} }    -- (0..255) if value is 255, the samples 
+                -- in Simple-Sa-Observed-Value and 
+                -- lower-scaled-value and upper-scaled-value in 
+                -- ScaleRangeSpec shall be interpreted as signed 
+                -- integers in 2s complement form. 
+
+
+-- SaFlags defines additional wave form properties.
+--
+SaFlags ::= BIT STRING {
+smooth-curve(0), -- for optimum display, use a smoothing algorithm
+delayed-curve(1), -- curve is delayed (not real time)
+static-scale(2), -- ScaleRangeSpec does not change
+sa-ext-val-range(3) -- The nonsignificant bits in a sample are not 0, e.g.,
+-- when they are used for annotations or markers.
+-- The receiver shall apply a bit mask to extract the
+-- significant bits from the sample. If the samples are
+-- signed, the sa-ext-val-range bit shall not be set
+-- (because, by definition, there cannot be
+-- nonsignificant bits in the field).
+}(SIZE(16))
+
+
+--
+-- Scale-and-Range-Specification attribute describes a relation between scaled values and absolute values;
+-- depending on the sample size, multiple attribute types exist
+--
+-- NOTE
+--If a wave does not represent absolute values, the absolute value fields should contain a special value;
+-- if the Sa-Specification attribute indicates signed samples, the scaled values have to be interpreted as
+-- signed values
+--
+ScaleRangeSpec8 ::= SEQUENCE {
+lower-absolute-value FLOAT-Type,
+upper-absolute-value FLOAT-Type,
+lower-scaled-value INT-U8,
+upper-scaled-value INT-U8
+}
+ScaleRangeSpec16 ::= SEQUENCE {
+lower-absolute-value FLOAT-Type,
+upper-absolute-value FLOAT-Type,
+lower-scaled-value INT-U16,
+upper-scaled-value INT-U16
+}
+ScaleRangeSpec32 ::= SEQUENCE {
+lower-absolute-value FLOAT-Type,
+upper-absolute-value FLOAT-Type,
+lower-scaled-value INT-U32,
+upper-scaled-value INT-U32
+}
+
+--
+-- Confirm-Mode attribute defines if confirmed event reports or unconfirmed event reports are used
+--
+ConfirmMode ::= INTEGER {
+unconfirmed(0),
+confirmed(1)
+}
+-- (0..65535)
+
+
+--
+-- StoSampleAlg describes how samples are derived and averaged.
+--
+StoSampleAlg ::= INTEGER {
+st-alg-nos(0), -- not otherwise specified
+st-alg-moving-average(1),
+st-alg-recursive(2),
+st-alg-min-pick(3),
+st-alg-max-pick(4),
+st-alg-median(5),
+st-alg-trended(512), -- trend values are used
+st-alg-no-downsampling(1024), -- means no averaging, this is a real measured sample
+st-alg-manuf-specific-start(61440), -- start of the reserved manufacturer-specific range
+st-alg-manuf-specific-end(65535) -- end of the reserved manufacturer-specific range
+}
+-- (0..65535)
+
+--
+-- SetTimeInvoke selects the date and time to be set.
+--
+SetTimeInvoke ::= SEQUENCE {
+date-time AbsoluteTime,
+accuracy FLOAT-Type -- accounts for set time (e.g., 2 min error);
+-- value is defined in seconds. This parameter is
+-- inherited from ISO/IEEE 11073-10201:2004
+-- [B13], but not used. Thus, it shall be zero (0).
+}
+
+--
+-- SegmSelection selects the PM-Segment objects that are subject to the method
+--
+SegmSelection ::= CHOICE {
+all-segments [1] INT-U16, -- if this type is chosen to select all segments, the actual
+-- contents of the field are "do not care" and should be 0
+segm-id-list [2] SegmIdList,
+abs-time-range [3] AbsTimeRange
+}
+
+--
+-- SegmIdList selects PM-segments by ID.
+--
+SegmIdList ::= SEQUENCE OF InstNumber
+
+--
+-- AbsTimeRange allows selection of PM-segments by time period.
+--
+AbsTimeRange ::= SEQUENCE {
+from-time AbsoluteTime,
+to-time AbsoluteTime
+}
+
+--
+-- TimeProtocolId indicates the time protocols that are supported/used by the device.
+--
+TimeProtocolId ::= OID-Type -- from the nom-part-infrastruct nomenclature partition 
+
+ModificationList ::= SEQUENCE OF AttributeModEntry
+AttributeModEntry ::= SEQUENCE {
+modify-operator ModifyOperator,
+attribute AVA-Type
+}
+
+-- All unassigned " ModifyOperator " values are reserved for future expansion and shall not be used.
+ModifyOperator ::= INTEGER {
+replace(0),
+addValues(1), -- used for modifying the values contained in list-like data types
+removeValues(2), -- used for modifying the values contained in list-like data types
+setToDefault(3)
+}
+-- (0..65535)
+
+ObservationScan ::= SEQUENCE {
+obj-handle HANDLE,
+attributes AttributeList
+}
+
+SystemType ::= BIT STRING {
+sys-type-manager(0),
+sys-type-agent(8)
+}(SIZE(32))
+
+
+--
+Poc-Date ::= SEQUENCE {
+century INT-U8,
+year INT-U8,
+month INT-U8,
+day INT-U8
+}
+
+--
+-- MDS Context ID
+--
+Poc-MdsContext ::= INT-U16
+
+--
+-- Global handle allows identification of an object in a larger scale system
+--
+Poc-GLB-HANDLE ::= SEQUENCE {
+context-id Poc-MdsContext,
+handle HANDLE
+}
+
+--
+-- Managed OID as a type for complete global object identification
+--
+Poc-ManagedObjectId ::= SEQUENCE {
+m-obj-class OID-Type,
+m-obj-inst Poc-GLB-HANDLE
+}
+
+--
+Poc-AdministrativeState ::= INTEGER {
+locked(0),
+unlocked(1),
+shuttingDown(2)
+}
+--(0..65535)
+
+--
+Poc-SimpleColour ::= INTEGER { -- RGB
+col-black(0), -- 000
+col-red(1), -- 100
+col-green(2), -- 010
+col-yellow(3), -- 110
+col-blue(4), -- 001
+col-magenta(5), -- 101
+col-cyan(6), -- 011
+col-white(7) -- 111
+}
+--(0..65535)
+
+Poc-StringFlags ::= BIT STRING {
+str-flag-nt(0) -- strings are null terminated
+}(SIZE(16))
+
+Poc-StringSpec ::= SEQUENCE {
+str-max-len INT-U16, -- maximum string length
+str-flags Poc-StringFlags -- specific flags for string representation and coding
+}
+
+--
+-- Charset names correspond to Internet Assigned Numbers Authority (IANA), the numeral constants are the
+-- IANA MIBenum values for registered charsets
+--
+Poc-CharSet ::= INTEGER {
+charset-unspec(0),
+charset-iso-10646-ucs-2(1000), -- ISO 10646 two-octet character encoding scheme,
+-- big endian
+charset-iso-10646-ucs-4(1001), -- ISO 10646 four-octet character encoding scheme,
+-- big endian
+charset-iso-8859-1(4), -- encoding according to ISO/IEC 8859 Part 1
+charset-iso-8859-2(5), -- encoding according to ISO/IEC 8859 Part 2
+charset-iso-8859-3(6), -- encoding according to ISO/IEC 8859 Part 3
+charset-iso-8859-4(7), -- encoding according to ISO/IEC 8859 Part 4
+charset-iso-8859-5(8), -- encoding according to ISO/IEC 8859 Part 5
+charset-iso-8859-6(9), -- encoding according to ISO/IEC 8859 Part 6
+charset-iso-8859-7(10), -- encoding according to ISO/IEC 8859 Part 7
+charset-iso-8859-8(11), -- encoding according to ISO/IEC 8859 Part 8
+charset-iso-8859-9(12), -- encoding according to ISO/IEC 8859 Part 9
+charset-iso-8859-10(13), -- encoding according to ISO/IEC 8859 Part 10
+charset-iso-8859-13(109), -- encoding according to ISO/IEC 8859 Part 13
+charset-iso-8859-14(110), -- encoding according to ISO/IEC 8859 Part 14
+charset-iso-8859-15(111), -- encoding according to ISO/IEC 8859 Part 15
+charset-iso-2022-kr(37), -- encoding according to RFC 1557
+-- (Korean Character Encoding)
+charset-ks-c-5601(36), -- encoding according to Korean Industrial Standard,
+-- KSC 5601-1987
+charset-iso-2022-jp(39), -- encoding according to RFC 1468
+-- (Japanese Character Encoding)
+charset-iso-2022-jp-2(40), -- encoding according to RFC 1554
+-- (Japanese Character Encoding)
+charset-jis-x0208(63), -- encoding according to JIS X0208:1983,1990
+charset-iso-2022-cn(104), -- encoding according to RFC 1922
+-- (Chinese Character Encoding)
+charset-gb-2312(2025) -- encoding according to Chinese Graphic
+-- Character Set, GB 2312:1980
+}
+--(0..65535)
+
+--
+Poc-Locale ::= SEQUENCE {
+language INT-U32, -- from ISO 639-1 or ISO 629-2, see below for encoding
+country INT-U32, -- from ISO 3166-1, ISO 3166-2, or ISO 3166-3, see below
+-- for encoding
+charset Poc-CharSet, -- format of character encoding
+str-spec Poc-StringSpec
+}
+
+--
+Poc-ExtNomenRef ::= SEQUENCE {
+nomenclature-id OID-Type, -- external nomenclature ID from external nomenclature
+-- partition
+nomenclature-code ANY DEFINED BY nomenclature-id
+}
+
+Poc-ExtObjRelationEntry ::= SEQUENCE {
+relation-type OID-Type,
+related-object OID-Type,
+relation-attributes AttributeList
+}
+
+--
+-- Poc-ExtObjRelationList
+--
+Poc-ExtObjRelationList ::= SEQUENCE OF Poc-ExtObjRelationEntry
+
+
+-- *****************************************************************
+-- A.2 Data Types related to different objects in different packages
+-- *****************************************************************
+--
+-- VMD status indication bits; all bits 0 indicate that VMD is operational
+--
+Poc-VMDStatus ::= BIT STRING {
+vmd-off(0),
+vmd-not-ready(1), -- e.g., for an infusion pump that is not ready
+vmd-standby(2), -- e.g., for device powered, but not active
+vmd-transduc-discon(8), -- transducer disconnected
+vmd-hw-discon(9) -- measurement hardware disconnected
+}(SIZE(16))
+
+--
+-- Physical principle of the measurement (multiple bits may be set)
+--
+Poc-MsmtPrinciple ::= BIT STRING {
+msp-other(0),
+msp-chemical(1),
+msp-electrical(2),
+msp-impedance(3),
+msp-nuclear(4),
+msp-optical(5),
+msp-thermal(6),
+msp-biological(7),
+msp-mechanical(8),
+msp-acoustical(9),
+msp-manual(15)
+}(SIZE(16))
+
+--
+-- Channel Status indication bits
+--
+Poc-ChannelStatus ::= BIT STRING {
+chan-off(0),
+chan-not-ready(1),
+chan-standby(2),
+chan-transduc-discon(8),
+chan-hw-discon(9)
+}(SIZE(16))
+
+--
+-- Metric-Status attribute
+--
+Poc-MetricStatus ::= BIT STRING {
+metric-off(0),
+metric-not-ready(1),
+metric-standby(2),
+metric-transduc-discon(8),
+metric-hw-discon(9)
+}(SIZE(16))
+
+--
+-- The metric category makes it possible to distinguish between measurements, settings, and calculations
+--
+Poc-MetricCategory ::= INTEGER {
+mcat-unspec(0),
+auto-measurement(1),
+manual-measurement(2),
+auto-setting(3),
+manual-setting(4),
+auto-calculation(5),
+manual-calculation(6)
+}
+--(0..65535)
+
+--
+-- The Poc-MetricAccess bit field provides information on how it is possible to access the metric value and
+-- when a new value is available
+--
+-- NOTES
+-- 1 The avail-intermittent flag shall be set if the observed value is not always available
+-- 2 Exactly one update mode bit (upd-) shall be set
+-- 3 At least one access mode bit (acc-) shall be set
+-- 4 It is possible to set scan option bits (sc-) only if the acc-scan bit is set
+-- 5 If the acc-scan bit is set, at least one sc-opt bit shall be set
+--
+Poc-MetricAccess ::= BIT STRING {
+avail-intermittent(0), -- value is intermittently available
+upd-periodic(1), -- value is periodically (fixed period) updated
+upd-episodic(2), -- value is episodically updated
+msmt-noncontinuous(3), -- measurement is not continuous (e.g., NBP)
+acc-evrep(4), -- metric sends event report for observed value
+acc-get(5), -- metric supports explicit GET service
+acc-scan(6), -- metric observed value is able to be accessed via
+-- Scanner object
+gen-opt-sync(8), -- observed value shall be processed synchronously
+sc-opt-normal(10), -- scan option: value can be scanned with update period
+sc-opt-extensive(11), -- scan option: in update period multiple values may occur
+sc-opt-long-pd-avail(12), -- scan option: value may be scanned slow
+-- (superpositive-avg scan bit)
+sc-opt-confirm(13),
+sc-opt-refresh(14) -- scan option: a scan refresh operation is allowed
+}(SIZE(16))
+
+--
+-- Structure describes if the object represents a single value or multiple related values (e.g., an invasive blood
+-- pressure could be compound when it represents a pulsatile pressure and derives systolic, diastolic, and
+-- mean values)
+--
+Poc-MetricStructure ::= SEQUENCE {
+ms-struct INTEGER {
+simple(0),
+compound(1), -- multiple observed values, same dynamic context
+complex(2) -- multiple observed values, multiple dynamic contexts
+},
+--(0..255)
+ms-comp-no INT-U8 -- maximum number of components in compound/complex
+}
+
+--
+-- Metric relevance defines in what way the metric should be used (i.e., a value of 0 means normal)
+--
+Poc-MetricRelevance ::= BIT STRING {
+rv-unspec(0), -- relevance not specified; should normally not be used
+rv-internal(1), -- an internally used value only
+rv-store-only(2), -- only relevant for storage
+rv-no-recording(3), -- not relevant for recording
+rv-phys-ev-ind(4), -- metric represents a physiological trigger (not a value)
+rv-btb-metric(5), -- metric is calculated for each beat or breath,
+-- not time-averaged
+rv-app-specific(8), -- dedicated application required to interpret the metric
+rv-service(9) -- metric is intended for service or diagnostic purposes
+}(SIZE(16))
+
+
+
+--
+-- The Metric-Specification attribute defines all mandatory static properties of a Metric object
+--
+Poc-MetricSpec ::= SEQUENCE {
+update-period RelativeTime, -- minimum time between changes of observed value
+category Poc-MetricCategory,
+access Poc-MetricAccess,
+structure Poc-MetricStructure,
+relevance Poc-MetricRelevance
+}
+
+
+Poc-MetricCalType ::= INTEGER{
+cal-unspec(0),
+cal-offset(1), -- offset calibration
+cal-gain(2), -- gain calibration
+cal-two-point(3) -- two-point calibration
+}
+--(0..65535)
+
+
+Poc-MetricCalState ::= INTEGER {
+not-calibrated(0),
+cal-required(1),
+calibrated(2)
+}
+--(0..65535)
+
+Poc-MetricCalEntry ::= SEQUENCE {
+cal-type Poc-MetricCalType,
+cal-state Poc-MetricCalState,
+cal-time AbsoluteTime
+}
+
+--
+-- The Metric-Calibration attribute defines calibration methods and times
+-- NOTE Multiple entries allowed
+--
+Poc-MetricCalibration ::= SEQUENCE OF Poc-MetricCalEntry
+
+--
+-- Ordered list of measurement sites, e.g., EEG electrode positions
+--
+Poc-SiteList ::= SEQUENCE OF OID-Type -- entries are from body site nomenclature partition
+--
+-- Site list may also refer to external nomenclatures to specify measurement sites
+--
+
+Poc-SiteListExt ::= SEQUENCE OF Poc-ExtNomenRef
+--
+-- Metric-Source-List attribute is an ordered list of metric OIDs
+--
+Poc-MetricSourceList ::= SEQUENCE OF OID-Type -- OIDs from VMO::Type or Metric-Id-Partition partition
+
+Poc-VmoSourceEntry ::= SEQUENCE {
+vmo-type OID-Type, -- from object-oriented nomenclature partition
+glb-handle Poc-GLB-HANDLE
+}
+
+--
+-- Vmo-Source-List attribute defines references to other VMO-derived objects that are used as sources
+-- of this metric (this is an ordered list)
+--
+Poc-VmoSourceList ::= SEQUENCE OF Poc-VmoSourceEntry
+
+
+--
+-- In a number of derived metrics, specification of ranges is necessary
+-- A type for this is defined here in the base class
+--
+Poc-AbsoluteRange ::= SEQUENCE {
+lower-value FLOAT-Type,
+upper-value FLOAT-Type
+}
+--
+-- Metric measure is used for attributes that have a value and a dimension
+--
+Poc-MetricMeasure ::= SEQUENCE {
+value FLOAT-Type,
+unit-code OID-Type -- from dimensions nomenclature partition
+}
+
+--
+-- Display-Resolution attribute is the value representation on a display (may be lower resolution)
+--
+Poc-DispResolution ::= SEQUENCE {
+pre-point INT-U8, -- digits before decimal point
+post-point INT-U8 -- digits after decimal point
+}
+
+
+--
+-- Sa-Observed-Value attribute
+--
+Poc-SaObsValue ::= SEQUENCE {
+metric-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+state MeasurementStatus,
+-- defined in Metric object
+array OCTET STRING
+}
+
+--
+-- Compound-Sa-Observed-Value attribute is the compound observed value
+--
+Poc-SaObsValueCmp ::= SEQUENCE OF Poc-SaObsValue
+
+Poc-SaFilterEntry ::= SEQUENCE {
+filter-type INTEGER {
+other(0), low-pass(1), high-pass(2), notch(3) 
+},
+--(0..65535)
+filter-frequency FLOAT-Type, -- e.g., -1: 6 dB/octet
+filter-order INT-I16
+}
+
+--
+-- Specification of an applied signal filter
+--
+
+Poc-SaFilterSpec ::= SEQUENCE OF Poc-SaFilterEntry
+
+Poc-SaGridEntry8 ::= SEQUENCE {
+absolute-value FLOAT-Type,
+scaled-value INT-U8,
+level INT-U8
+}
+
+--
+-- Visual-Grid attribute defines grid lines at different levels of grid lines; if the Sa-Specification attribute
+-- indicates signed samples, the scaled values have to be interpreted as signed values
+--
+Poc-SaVisualGrid8 ::= SEQUENCE OF Poc-SaGridEntry8
+
+Poc-SaGridEntry16 ::= SEQUENCE {
+absolute-value FLOAT-Type,
+scaled-value INT-U16,
+level INT-U16
+}
+
+Poc-SaVisualGrid16 ::= SEQUENCE OF Poc-SaGridEntry16
+
+Poc-SaGridEntry32 ::= SEQUENCE {
+absolute-value FLOAT-Type,
+scaled-value INT-U32,
+level INT-U16
+}
+
+Poc-SaVisualGrid32 ::= SEQUENCE OF Poc-SaGridEntry32
+
+Poc-SaCalDataType ::= INTEGER {
+bar(0), -- display a calibration bar
+stair(1) -- display a calibration stair
+}
+--(0..65535)
+
+--
+-- Sa-Calibration-Data attribute defines calibration markers on a display or on a recording strip; if the
+-- Sa-Specification attribute indicates signed samples, the scaled values have to be interpreted as signed values
+--
+Poc-SaCalData8 ::= SEQUENCE {
+lower-absolute-value FLOAT-Type,
+upper-absolute-value FLOAT-Type,
+lower-scaled-value INT-U8,
+upper-scaled-value INT-U8,
+increment INT-U16, -- scaled value for each step of the stair
+cal-type Poc-SaCalDataType
+}
+
+Poc-SaCalData16 ::= SEQUENCE {
+lower-absolute-value FLOAT-Type,
+upper-absolute-value FLOAT-Type,
+lower-scaled-value INT-U16,
+upper-scaled-value INT-U16,
+increment INT-U16, -- scaled value for each step of the stair
+cal-type Poc-SaCalDataType
+}
+Poc-SaCalData32 ::= SEQUENCE {
+lower-absolute-value FLOAT-Type,
+upper-absolute-value FLOAT-Type,
+lower-scaled-value INT-U32,
+upper-scaled-value INT-U32,
+increment INT-U32, -- scaled value for each step of the stair
+cal-type Poc-SaCalDataType
+}
+
+--
+-- Sa-Signal-Frequency attribute specifies the signal frequency
+--
+Poc-SaSignalFrequency ::= SEQUENCE{
+low-edge-freq FLOAT-Type,
+high-edge-freq FLOAT-Type -- both in hertz
+}
+--
+-- Sa-Physiological-Range attribute data types
+-- If the Sa-Specification attribute indicates signed samples, the scaled values have to be interpreted as signed values
+Poc-ScaledRange8 ::= SEQUENCE {
+lower-scaled-value INT-U8,
+upper-scaled-value INT-U8
+}
+Poc-ScaledRange16 ::= SEQUENCE {
+lower-scaled-value INT-U16,
+upper-scaled-value INT-U16
+}
+Poc-ScaledRange32 ::= SEQUENCE {
+lower-scaled-value INT-U32,
+upper-scaled-value INT-U32
+}
+
+--
+-- Sa-Marker-List attribute allows the definition of special sample values to mark or annotate certain
+-- conditions directly in the sample value; the special sample value may be a full value or a bit mask,
+-- depending on the marker ID; in any case, the sample value may use bits outside the normal range
+-- (as defined by the SampleType:: significant-bits) only if the SaFlags::sa-ext-val-range flag is set
+--
+
+Poc-MarkerEntrySaVal8 ::= SEQUENCE {
+marker-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+marker-val INT-U8, -- a value or bit mask depending on marker-id
+unused INT-U8 -- for alignment
+}
+
+Poc-MarkerListSaVal8 ::= SEQUENCE OF Poc-MarkerEntrySaVal8
+
+Poc-MarkerEntrySaVal16 ::= SEQUENCE {
+marker-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+marker-val INT-U16 -- a value or bit mask depending on marker-id
+}
+
+Poc-MarkerListSaVal16 ::= SEQUENCE OF Poc-MarkerEntrySaVal16
+
+Poc-MarkerEntrySaVal32 ::= SEQUENCE {
+marker-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+marker-val INT-U32 -- a value or bit mask depending on marker-id
+}
+
+Poc-MarkerListSaVal32 ::= SEQUENCE OF Poc-MarkerEntrySaVal32
+
+
+--
+-- Tsa-Marker-List attribute can be used to mark certain time points in the wave snippet; the first sample
+-- is at relative time 0
+--
+
+Poc-MarkerEntryRelTim ::= SEQUENCE {
+marker-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+marker-time RelativeTime
+}
+
+Poc-MarkerListRelTim ::= SEQUENCE OF Poc-MarkerEntryRelTim
+
+
+--
+-- Distribution-Range-Specification attribute defines the absolute value for the first and last array
+-- element; a linear scale is assumed here unless a specific compression scheme is defined
+-- (last-value - first-value)/no.of.array elements == step width
+--
+Poc-DsaRangeSpec ::= SEQUENCE {
+first-element-value FLOAT-Type,
+last-element-value FLOAT-Type
+}
+--
+-- DSA-Marker-List attribute allows the annotation of samples by referencing the sample with an index
+--
+
+Poc-MarkerEntryIndex ::= SEQUENCE {
+marker-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+marker-index INT-U16
+}
+
+Poc-MarkerListIndex ::= SEQUENCE OF Poc-MarkerEntryIndex
+
+--
+-- Record data type with structure and contents defined by a nomenclature ID from the VMO::Type or
+-- Metric-Id-Partition partition
+--
+Poc-EnumRecordMetric ::= SEQUENCE {
+record-type-code OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+record-data ANY DEFINED BY record-type-code
+}
+
+--
+-- Record data type with structure and contents defined by a nomenclature ID from the object-oriented
+-- nomenclature partition
+--
+Poc-EnumRecordOo ::= SEQUENCE {
+record-type-code OID-Type, -- must be from object-oriented nomenclature partition
+record-data ANY DEFINED BY record-type-code
+}
+
+-- The enumeration value data type is used to provide different specific observation data types as follows
+-- (Note that the type of measurement is coded in the top level structure EnumObsVal::metric-id)
+--
+-- enum-obj-id: used to communicate a metric OID, e.g., as an annotation or
+-- other event defined in the VMO::Type or Metric-Id-Partition
+-- partition
+-- enum-text-string: used to communicate a free text string (e.g., a status message)
+-- enum-external-code: used to provide the code of an external nomenclature (e.g.,
+-- could be used for procedure codes not covered in the
+-- standard nomenclature)
+-- enum-bit-str: for coding bit string values; the bit string data type must be
+-- defined separately, e.g., in the nomenclature or in a
+-- device-specific standard
+-- enum-record-metric/oo: allows the identification of additional data types by a
+-- nomenclature code from the VMO::Type or
+-- Metric-Id-Partition partition; the appended data type must be
+-- defined separately, e.g., in a device-specific standard
+-- enum-numeral: used to provide numeral enumerated values that must be
+-- defined separately, e.g., in a device-specific standard;
+-- this type is not to be used for numeric measurements
+--
+Poc-EnumVal ::= CHOICE {
+enum-obj-id [1] EXPLICIT OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+enum-text-string [2] EXPLICIT OCTET STRING,
+-- free text
+enum-external-code [8] EXPLICIT Poc-ExtNomenRef,
+-- code defined in other coding system
+enum-bit-str [16] EXPLICIT BITS-32, -- bit string
+enum-record-metric [33] EXPLICIT Poc-EnumRecordMetric,
+-- record type defined by ID from VMO::Type or
+-- Metric-Id-Partition partition
+enum-record-oo [34] EXPLICIT Poc-EnumRecordOo,
+-- record type defined by ID from object-oriented
+-- nomenclature partition
+enum-numeral [64] EXPLICIT INT-U32 -- enumerated integer value
+}
+
+--
+-- Enum-Observed-Value attribute
+--
+Poc-EnumObsValue ::= SEQUENCE {
+metric-id OID-Type, -- from VMO::Type or Metric-Id-Partition partition
+state MeasurementStatus,
+value Poc-EnumVal -- supports different value data types
+}
+
+--
+-- Compound-Enum-Observed-Value attribute is the compound observed value
+--
+Poc-EnumObsValueCmp ::= SEQUENCE OF Poc-EnumObsValue
+
+--
+-- Enum-Measure-Range attribute defines the set of potential (i.e., legal) values of the Enum-Observed-Value
+-- attribute (only allowed when EnumVal::enum-obj-id type is used)
+--
+Poc-EnumMsmtRange ::= SEQUENCE OF OID-Type -- from VMO::Type or Metric-Id-Partition partition
+
+--
+-- Enum-Measure-Range-Labels attribute defines both the set of potential (i.e., legal) values of the
+-- Enum-Observed-Value attribute as well as a text label that can be associated with each enumeration value
+--
+
+Poc-EnumMsmtRangeLabel ::= SEQUENCE {
+value Poc-EnumVal, -- specific enumeration setting
+label OCTET STRING -- textual label associated with value
+}
+
+Poc-EnumMsmtRangeLabels ::= SEQUENCE OF Poc-EnumMsmtRangeLabel
+
+--
+-- Definitions for Cmplx-Metric-Info attribute
+--
+
+Poc-CmplxElemInfo ::= SEQUENCE {
+class-id OID-Type,
+max-inst INT-U8, -- number of objects from type class-id
+max-inst-comp INT-U8, -- number of compound objects from type class-id
+max-comp-no INT-U8, -- maximum number of elements within a compound object
+max-inst-mplex INT-U8, -- number of multiplexed objects within
+-- max-inst + max-inst-comp
+max-str-size INT-U16 -- maximum string size
+}
+
+Poc-CmplxElemInfoList ::= SEQUENCE OF Poc-CmplxElemInfo
+
+Poc-CmplxMetricInfo ::= SEQUENCE {
+max-mplex-obs INT-U8, -- maximum number of messages until all
+-- multiplexed elements are transmitted
+-- in the Metric Observed Value Group
+max-mplex-dyn INT-U8, -- maximum number of messages until all
+-- multiplexed elements are transmitted
+-- in the VMO Dynamic Context Group
+cm-elem-info-list Poc-CmplxElemInfoList
+}
+
+Poc-CmplxObsElemFlags ::= BIT STRING {
+cm-obs-elem-flg-mplex (0), -- the element will be multiplexed
+cm-obs-elem-flg-is-setting (2),
+cm-obs-elem-flg-updt-episodic (4),
+cm-obs-elem-flg-msmt-noncontinuous (5)
+}(SIZE(8))
+
+Poc-CmplxObsElem ::= SEQUENCE {
+cm-elem-idx INT-U8,
+cm-obs-elem-flgs Poc-CmplxObsElemFlags,
+attributes AttributeList
+}
+
+Poc-CmplxObsElemList ::= SEQUENCE OF Poc-CmplxObsElem
+
+Poc-CmplxFlags ::= BIT STRING {
+cmplx-flag-reserved(0) -- for future extensions
+}
+
+--
+-- Cmplx-Observed-Value attribute, representing the hierarchy of contained Metric objects
+--
+Poc-CmplxObsValue ::= SEQUENCE {
+cm-obs-cnt INT-U8, -- sequence counter begins with 0 when a
+-- multiplex period begins
+cm-obs-flags Poc-CmplxFlags,
+cm-obs-elem-list Poc-CmplxObsElemList
+}
+
+
+--
+-- Cmplx-Dyn-Attr with the dynamic context data of the hierarchy of contained Metric objects
+--
+
+Poc-CmplxDynAttrElem ::= SEQUENCE {
+cm-elem-idx-1 INT-U8, -- allows the definition, with cm-elem-idx-2, of a range
+-- of elements where the dynamic attributes apply
+cm-elem-idx-2 INT-U8,
+attributes AttributeList
+}
+
+Poc-CmplxDynAttrElemList ::= SEQUENCE OF Poc-CmplxDynAttrElem
+
+Poc-CmplxDynAttr ::= SEQUENCE {
+cm-dyn-cnt INT-U8, -- sequence counter begins with 0 when a
+-- multiplex period begins
+unused INT-U8,
+cm-dyn-elem-list Poc-CmplxDynAttrElemList
+}
+
+--
+-- Cmplx-Static-Attr with the static context data of the hierarchy of contained Metric objects
+--
+
+Poc-CmplxStaticAttrElem ::= SEQUENCE {
+cm-elem-idx-1 INT-U8, -- allows the defintion, with cm-elem-idx-2, of a range
+-- of elements where the static attributes apply
+cm-elem-idx-2 INT-U8,
+attributes AttributeList -- only static attributes as defined for metric specialization are
+-- allowed here (i.e., no VMO or Metric object attributes)
+}
+
+Poc-CmplxStaticAttrElemList ::= SEQUENCE OF Poc-CmplxStaticAttrElem
+
+Poc-CmplxStaticAttr ::= SEQUENCE {
+cm-static-elem-list Poc-CmplxStaticAttrElemList
+}
+
+
+--
+-- The storage type defines the structure of the Segment-Data attribute in all contained PM-Segment objects
+-- 1..255: range for normative formats
+-- 32768..65535: range for private formats
+-- other: reserved
+--
+Poc-StorageFormat ::= INTEGER {
+sto-t-nos(0),
+sto-t-gen(1), -- implies general format (i.e., PM-Segment object;
+-- see 7.3.13)
+sto-t-nu-opt(2), -- implies optimized Numeric object format
+sto-t-rtsa-opt(3) -- implies optimized Real Time Sample Array object format
+}
+--(0..65535)
+
+--
+-- Get-Segments method returns a list of PM-Segment attribute lists that include the Segment-Data
+-- attribute; the instance number is used to identify each segment
+--
+
+Poc-SegmentAttr ::= SEQUENCE {
+seg-inst-no InstNumber,
+seg-attr AttributeList
+}
+
+Poc-SegmentAttrList ::= SEQUENCE OF Poc-SegmentAttr
+
+--
+-- Segment contents information as a result to the Get-Segment-Info returns all attributes of the PM-Segment
+-- objects except the Segment-Data attribute; this is useful to get just information about the contents
+--
+
+Poc-SegmentInfo ::= SEQUENCE {
+seg-inst-no InstNumber,
+seg-info AttributeList
+}
+
+Poc-SegmentInfoList ::= SEQUENCE OF Poc-SegmentInfo
+
+
+--
+-- General segment data format; each stored value is one attribute list
+-- NOTE This format may be very storage-intensive
+--
+Poc-SegDataGen ::= SEQUENCE OF AttributeList
+--
+-- Optimized Numeric object format for periodically acquired numerics; only the actual value is stored
+--
+Poc-SegDataNuOpt ::= SEQUENCE OF FLOAT-Type
+--
+-- Optimized Real Time Sample Array object format; a consecutive array of samples
+--
+Poc-SegDataRtsaOpt ::= OCTET STRING
+
+--
+-- Alert controls define flags to communicate status information relevant for alarm processor; this structure is
+-- reused in the Alert Status object
+--
+Poc-AlertControls ::= BIT STRING {
+ac-obj-off(0), -- the object supervised by the alert is off
+ac-chan-off(1), -- channel is off
+ac-all-obj-al-off(3), -- all alerts supervising the referenced objects are off
+ac-alert-off(4), -- this alert supervisor process is off
+ac-alert-muted(5) -- this alert is temporarily muted by the user (e.g., on
+-- ventilators to allow physiotherapy or suction)
+}(SIZE(16))
+--
+
+
+
+-- Alert flags give additional support information on how to process the condition; this structure is used by the
+-- Alert Status object as well
+--
+Poc-AlertFlags ::= BIT STRING {
+local-audible(1), -- indicates that the condition is audible at the local system
+remote-audible(2), -- condition can be audible at remote (i.e., not suppressed)
+visual-latching(3), -- visible latching of the condition is allowed
+audible-latching(4), -- audio latching of the condition is allowed
+derived(6),
+record-inhibit(8) -- do not start alarm recording
+}(SIZE(16))
+--
+-- Alert type is used to distinguish severity of technical and physiological alarms
+--
+Poc-AlertType ::= INTEGER {
+no-alert(0),
+low-pri-t-al(1), -- low-priority technical alarm
+med-pri-t-al(2), -- medium-priority technical alarm
+hi-pri-t-al(4), -- high-priority technical alarm
+low-pri-p-al(256), -- awareness condition
+med-pri-p-al(512), -- prompt response required (i.e., abnormal condition)
+hi-pri-p-al(1024) -- immediate response required (i.e., emergency condition)
+}
+--(0..65535)
+
+
+
+--
+-- Alert-Condition attribute is the status output of the process that is detecting the alert
+--
+Poc-AlertCondition ::= SEQUENCE {
+obj-reference HANDLE,
+controls Poc-AlertControls,
+alert-flags Poc-AlertFlags, -- supporting flags
+alert-source OID-Type, -- from metric or object-oriented nomenclature partition
+alert-code OID-Type, -- from events nomenclature partition
+alert-type Poc-AlertType, -- defines type and severity of condition
+alert-info-id PrivateOid, -- specific infomation can be appended; 0 if not used
+alert-info ANY DEFINED BY alert-info-id
+}
+
+--
+-- Limit-Specification attribute specifies the supervised limit range
+--
+
+--
+-- Alert-Op-State attribute defines the current limit alert state
+-- NOTE The bits refer to the limit alarm only, not to the global alert state of the metric
+--
+Poc-CurLimAlStat ::= BIT STRING {
+lim-alert-off(0), -- if this bit is set, all alerts (both high and low) are off
+lim-low-off(1), -- low-limit violation detection is off
+lim-high-off(2) -- high-limit violation detection is off
+}(SIZE(16))
+--
+-- Current-Limits attribute
+--
+Poc-CurLimAlVal ::= SEQUENCE {
+lower FLOAT-Type,
+upper FLOAT-Type
+}
+
+Poc-LimitSpecEntry ::= SEQUENCE {
+object-handle HANDLE,
+al-source-id OID-Type, -- typically the metric ID of the measurement
+unit-code OID-Type, -- from DIM partition
+lim-al-stat Poc-CurLimAlStat, -- see 7.6.8.1 for definition
+lim-al-val Poc-CurLimAlVal -- see 7.6.8.1 for definition
+}
+
+--
+-- Limit-Spec-List attributed specifies the supervised limit ranges
+--
+Poc-LimitSpecList ::= SEQUENCE OF Poc-LimitSpecEntry
+
+--
+-- The alert list is used to communicate alarm conditions derived by the Alert Status object
+--
+
+Poc-AlertEntry ::= SEQUENCE {
+obj-reference HANDLE,
+instance InstNumber, -- to support multiple alarms of one object
+controls Poc-AlertControls,
+alert-source OID-Type, -- from metric or object-oriented nomenclature partition
+alert-code OID-Type, -- from alerts nomenclature partition
+alert-type Poc-AlertType,
+alert-info-id PrivateOid,
+alert-info ANY DEFINED BY alert-info-id
+}
+
+Poc-AlertList ::= SEQUENCE OF Poc-AlertEntry
+
+--
+-- Alert Status object provides a capability list with entries for each supervised object in its scope
+--
+
+Poc-AlertCapabEntry ::= SEQUENCE {
+obj-reference HANDLE,
+obj-class OID-Type,
+alert-group OID-Type, -- allows grouping of Alert objects so that a processor can
+-- select to display only one from a given group (metric ID)
+al-rep-flags BIT STRING -- defines how multiple alarms are communicated
+{ dyn-inst-contents(1), rep-all-inst(2) }(SIZE(16)),
+max-t-severity Poc-AlertType, -- most severe technical alarm
+max-t-obj-al INT-U16, -- maximum number of parallel technical alarms
+-- for this object
+max-p-severity Poc-AlertType, -- most severe physiological alarm
+max-p-obj-al INT-U16 -- maximum number of parallel physiological alarms
+-- for this object
+}
+
+Poc-AlertCapabList ::= SEQUENCE OF Poc-AlertCapabEntry
+
+
+--
+-- Device-Alert-Condition attribute describes the global MDS alarm status
+--
+
+Poc-AlertState ::= BIT STRING {
+al-inhibited(0), -- off
+al-suspended(1), -- alert(ing) inactivated temporarily;
+-- alert condition acknowledged
+al-latched(2), -- specific alert is latched (or AlMon latches alert conditions)
+al-silenced-reset(3), -- (transition only); alert indication stopped, but
+-- alarming re-enabled
+al-dev-in-test-mode(5), -- device is in test mode; the alarms are not real patient alarms
+al-dev-in-standby-mode(6), -- device is in standby mode
+al-dev-in-demo-mode(7) -- device is in demonstration mode, the alarms are not
+-- real patient alarms
+
+}(SIZE(16))
+Poc-AlStatChgCnt ::= SEQUENCE {
+al-new-chg-cnt INT-U8, -- Device-Alert-Condition attribute changed
+al-stack-chg-cnt INT-U8 -- alert stack (active alarm list attributes) changed
+}
+
+Poc-DevAlertCondition ::= SEQUENCE {
+device-alert-state Poc-AlertState,
+al-stat-chg-cnt Poc-AlStatChgCnt, -- change counter marks state or active alerts change
+max-p-alarm Poc-AlertType,
+max-t-alarm Poc-AlertType,
+max-aud-alarm Poc-AlertType -- maximum severity of audible alarm
+}
+
+
+--
+-- Device alarm list
+--
+
+Poc-DevAlarmEntry ::= SEQUENCE {
+al-source OID-Type, -- from metric or object-oriented nomenclature partition
+al-code OID-Type, -- from events nomenclature partition
+al-type Poc-AlertType,
+al-state Poc-AlertState,
+object Poc-ManagedObjectId,
+alert-info-id PrivateOid,
+alert-info ANY DEFINED BY alert-info-id
+}
+
+Poc-DevAlarmList ::= SEQUENCE OF Poc-DevAlarmEntry
+
+
+--
+-- System-Capability attribute is a top-level specification of implemented functions; (the following is
+-- an example only)
+--
+Poc-SystemCapability ::= BIT STRING {
+sc-multiple-context(0), -- indicates that system uses multiple naming contexts
+sc-dyn-configuration(1), -- containment tree changes dynamically
+sc-dyn-scanner-create(2), -- system allows host to create Scanner objects dynamically
+sc-auto-init-scan-list(3), -- CfgScanner object supports automatic
+-- scan list initialization
+sc-auto-updt-scan-list(4) -- CfgScanner object supports automatic scan list update
+}(SIZE(32))
+--
+-- System-Specification attribute allows specific entries for system functional components
+--
+
+Poc-SystemSpecEntry ::= SEQUENCE {
+component-capab-id PrivateOid,
+component-spec ANY DEFINED BY component-capab-id
+}
+
+Poc-SystemSpec ::= SEQUENCE OF Poc-SystemSpecEntry
+
+--
+-- Nomenclature-Version attribute contains a part of the major version field (i.e., basic compatibility) and the
+-- minor version (used to identified the latest used update); the major version part is coded as a bit field so that
+-- systems supporting multiple versions can negotiate the version used within an association
+--
+
+Poc-NomenclatureVersion ::= SEQUENCE {
+nom-major-version BIT STRING { -- major version identifier
+majorVersion1(0),
+majorVersion2(1),
+majorVersion3(2),
+majorVersion4(3)
+}(SIZE(16)),
+nom-minor-version INT-U16 -- counter to identify minor updates
+}
+
+--
+-- MDS state of one association/connection according to FSM
+--
+Poc-MDSStatus ::= INTEGER {
+disconnected(0), unassociated(1), associating(2), associated(3),
+configuring(4), configured(5), operating(6), re-initializing(7),
+terminating(8), disassociating(9), disassociated(10), re-configuring(11)
+}
+--(0..65535)
+--
+-- Application-Area attribute
+--
+Poc-ApplicationArea ::= INTEGER {
+area-unspec(0),
+area-operating-room(1),
+area-intensive-care(2)
+}
+--(0..65535)
+
+--
+-- Line-Frequency attribute
+--
+Poc-LineFrequency ::= INTEGER {
+line-f-unspec(0),
+line-f-50hz(1),
+line-f-60hz(2)
+}
+--(0..65535)
+
+--
+-- MDS-Set-State method permits modification of the state of the MDS state machine e.g., to trigger a reset
+-- (if supported by a device)
+-- NOTE Usage of the authorization type is implementation-specific, especially given the security and operational
+-- coordination issues involved
+--
+Poc-MdsSetStateInvoke ::= SEQUENCE {
+new-state Poc-MDSStatus,
+authorization INT-U32
+}
+Poc-MdsSetStateResult ::= Poc-MDSStatus
+
+--
+-- System-Error notification in case of system errors
+--
+Poc-MdsErrorInfo ::= SEQUENCE {
+error-type PrivateOid,
+error-info ANY DEFINED BY error-type
+}
+--
+-- Mds-Create-Notification event is sent after association is established
+--
+Poc-MdsCreateInfo ::= SEQUENCE {
+class-id Poc-ManagedObjectId,
+attribute-list AttributeList -- attributes from the System Identification Attribute Group
+-- and System Application Attribute Group
+}
+
+--
+-- MDS may report changes of attribute values
+--
+Poc-MdsAttributeChangeInfo ::= AttributeList
+
+--
+-- Options that control the clear command
+--
+Poc-ClearLogOptions ::= BIT STRING {
+log-clear-if-unchanged(1) -- only perform this action if the log has not been changed;
+-- in other words, the evlog-change-count in the request
+-- is still current
+}(SIZE(16))
+
+--
+-- Range of log entries to be deleted; if the parameter is not appended to the Clear-Log method, the complete log
+-- shall be cleared unconditionally
+--
+Poc-ClearLogRangeInvoke ::= SEQUENCE {
+clear-log-option Poc-ClearLogOptions,
+log-change-count INT-U16, -- 0 if unconditional clear
+from-log-entry-index INT-U32,
+to-log-entry-index INT-U32
+}
+
+--
+-- Poc-Result of the clear log function
+--
+Poc-ClearLogResult ::= INTEGER {
+log-range-cleared(0), -- successful operation
+log-changed-clear-error(1), -- the change count was wrong (i.e., log has been modified)
+log-change-counter-not-supported(2) -- log does not support a change counter
+}
+--(0..65535)
+
+
+Poc-ClearLogRangeResult ::= SEQUENCE {
+clear-log-result Poc-ClearLogResult,
+log-change-count INT-U16, -- current change count after clear
+from-log-entry-index INT-U32, -- do not care if not successful
+to-log-entry-index INT-U32, -- do not care if not successful
+current-log-entries INT-U32 -- updated number of entries in the log
+}
+
+Poc-EventLogEntry ::= SEQUENCE {
+entry-number INT-U32, -- entry counter independent of the index number that is
+-- used for access
+abs-time AbsoluteTime, -- event time
+event-entry OCTET STRING -- free-text or binary event information; structure defined
+-- by the Type attribute
+}
+
+--
+-- Event-Log-Entry-List attribute
+--
+Poc-EventLogEntryList ::= SEQUENCE OF Poc-EventLogEntry
+
+--
+-- Event-Log-Info attribute
+-- Bits 0 to 15 are reserved for static information; bits 16 to 31 are dynamically updated to reflect log status changes
+-- If this attribute is not present, all bits are implicitly assumed 0
+--
+Poc-EventLogInfo ::= BIT STRING {
+ev-log-clear-range-sup(0), -- supports to clear specified ranges (not just the entire log)
+ev-log-get-act-sup(1), -- supports retrieving individual entries using the
+-- Get-Event-Log method (not just a simple GET service)
+ev-log-binary-entries(8), -- log entries are binary, not free text
+ev-log-full(16), -- log is full; cleared as soon as the log contains at least
+-- 1 free entry as a result of a clear action
+ev-log-wrap-detect(17) -- set when the log is full and the first old entry is
+-- overwritten; cleared as soon as the log contains at least
+-- 1 free entry as a result of a clear action
+}(SIZE(32))
+
+--
+-- Range of log entries to be retrieved
+--
+Poc-GetEventLogEntryInvoke ::= SEQUENCE {
+from-log-entry-index INT-U32,
+to-log-entry-index INT-U32
+}
+--
+-- Reply containing the requested entries; depending on agent restrictions, the reply may contain only a part of the
+-- requested entries; this situation must be checked by the manager
+
+--
+Poc-GetEventLogEntryResult ::= SEQUENCE {
+log-change-count INT-U16, -- current log change counter (0 if not supported)
+from-log-entry-index INT-U32,
+to-log-entry-index INT-U32,
+entry-list Poc-EventLogEntryList
+}
+
+--
+-- Battery Status bit field
+--
+Poc-BatteryStatus ::= BIT STRING {
+batt-discharged(0),
+batt-full(1), -- > 95% of capacity
+batt-discharging(2),
+batt-chargingFull(8),
+batt-chargingTrickle(9),
+batt-malfunction(12),
+batt-needs-conditioning(13) -- battery needs conditioning
+}(SIZE(16))
+
+--
+-- Time-Support attribute provides general information about time-related services that are provided by the device
+-- Some of this information could be determined by examining the presence/absence of various attributes in a
+-- containment tree; however, its presence here simplifies time management for device managers
+--
+-- NOTES
+-- 1 If remote date/time synchronization is supported (e.g., SNTP), then either the Date-And-Time or
+-- ISO-Date-And-Time attribute must also be supported
+-- 2 If the device is also a server of time information (e.g., an SNTP server), this fact should be indicated
+-- in the time protocol IDs
+--
+
+--
+--Time capability
+--
+Poc-TimeCapability ::= BIT STRING {
+time-capab-real-time-clock(0), -- the device includes hardware support for time
+-- (including battery power)
+time-capab-ebww(1), -- time can be set locally/manually
+--("eyeball and wristwatch" or "EBWW")
+time-capab-leap-second-aware(2), -- supports adjustment of time for leap-seconds
+-- (SNTP-related)
+time-capab-time-zone-aware(3), -- supports time zone-related attributes
+time-capab-internal-only(4), -- date/time is used only internally to
+-- the device; not displayed to operator
+time-capab-time-displayed(5), -- date/time can be displayed continually on the device
+-- versus in a menu
+time-capab-patient-care(6), -- date/time is used in critical patient
+-- care algorithms/protocols
+time-capab-rtsa-time-sync-annotations(7), -- timestamp annotations supported for real-time waveform
+-- data (Real Time Sample Array objects)
+time-capab-rtsa-time-sync-high-precision(8), -- Real Time Sample Array objects support attributes for
+-- high precision sample timestamps
+time-capab-set-time-action-sup(16), -- Clock object supports the set time action
+time-capab-set-time-zone-action-sup(17), -- Clock object supports the set time zone action
+time-capab-set-leap-sec-action-sup(18), -- Clock object supports the set leap-seconds action
+time-capab-set-time-iso-sup(19) -- Clock object supports the set time ISO action
+}(SIZE(32))
+
+Poc-TimeSupport ::= SEQUENCE {
+time-capability Poc-TimeCapability,
+-- Flags indicating general time support
+relative-resolution INT-U32, -- Time between actual ticks in microseconds; set to
+-- 0xFFFFFFFF if not defined or specified
+time-protocols SEQUENCE OF TimeProtocolId
+-- List of external time protocols supported (e.g., SNTP)
+}
+
+--
+-- Timestamp ID (e.g., for SNTP timestamps)
+--
+Poc-TimeStampId ::= OID-Type -- from the infrastructure nomenclature partition
+--
+-- Extended timestamp (e.g., SNTP timestamp value)
+--
+Poc-ExtTimeStamp ::= SEQUENCE {
+time-stamp-id Poc-TimeStampId,
+time-stamp ANY DEFINED BY time-stamp-id
+}
+Poc-ExtTimeStampList ::= SEQUENCE OF Poc-ExtTimeStamp
+
+--
+-- Date/time usage flags indicate dynamic usage status for date and time in the device; no bits set indicates
+-- unknown/indeterminate status
+--
+Poc-DateTimeUsage ::= BIT STRING {
+dt-use-remote-sync(0), -- date/time is synchronized to an external source
+dt-use-operator-set(1), -- date/time set by operator (i.e., EBWW)
+dt-use-rtc-synced(2), -- date/time in the RTC has been synchronized to a
+-- remote time source
+dt-use-critical-use(3), -- date/time is actively being used in care delivery
+-- algorithms/protocols
+dt-use-displayed(4) -- date/time is actively being displayed to the operator
+}(SIZE(16))
+
+--
+-- Date-Time-Status attribute defines the current/active usage status for date and time in the device
+--
+Poc-DateTimeStatus ::= SEQUENCE {
+usage-status Poc-DateTimeUsage, -- flags indicating dynamic time usage
+clock-last-set AbsoluteTime, -- time the absolute time was last set
+clock-accuracy FLOAT-Type, -- decimal number indicating the accuracy or maximum
+-- error of the absolute time relative to a primary reference
+-- clock source (in seconds)
+active-sync-protocol TimeProtocolId -- protocol that is actively being used
+-- for time synchronization
+}
+
+--
+-- ISO-Date-and-Time attribute is an ASCII string that can provide additional information beyond the basic
+-- date/time setting (e.g., UTC offset or device-local time zone indication); this attribute can be set
+-- using the SET service (as can the Date-And-Time attribute)
+-- Note that if both AbsoluteTime and Poc-AbsoluteTimeISO types are concurrently supported,
+-- they shall reflect the same time (relative to their accuracy and resolution limitations)
+-- Although not mandatory, it is highly recommended that all optional fields be included in the string
+-- To simplify processing, the following constraints shall apply
+-- (a) Only complete representations shall be used
+-- (b) Only extended formats shall be used
+-- (c) "Week date" and ordinal "day of the year" representations shall not be used; only calendar dates
+-- (d) Decimal fractions shall be used only for partial seconds (e.g., not fractional hours)
+-- (e) Per ISO 8601:2000(E), the representation of decimal fractions shall be in accordance with Section 5.3.1.3
+-- (f) If known, UTC shall be communicated either using zulu (or Z) format or the offset between local
+-- and GMT/UTC time; specifying the time offset shall be used if known
+-- (g) Specification of time intervals and recurring periods is beyond the use of this data type and shall
+-- require a definition of a new data type if used  for example
+-- November 24, 2001, 3:45:32.65 P.M. in San Diego, California, USA, shall be represented by the following
+-- string: 2001-11-24T15:45:32,65-08:00
+--
+Poc-AbsoluteTimeISO ::= OCTET STRING -- ASCII text string that adheres to ISO 8601 format
+--
+-- Poc-SNTPTimeStamp, a 64-bit timestamp value that is provided by an SNTP time synchronization service
+--
+Poc-SNTPTimeStamp ::= SEQUENCE {
+seconds INT-U32, -- Seconds since January 1, 1900 00:00
+fraction INT-U32 -- Binary fraction of a second
+}
+--
+-- Absolute-Relative-Sync attribute provides a means for correlating relative timestamps to the
+-- device’s date/time setting
+-- NOTE This attribute needs to be updated only periodically to account for drift between the various
+-- time sources (e.g., once a minute)
+--
+Poc-AbsoluteRelativeTimeSync ::= SEQUENCE {
+absolute-time-mark AbsoluteTime, -- use of this data type limits resolution to 1/100 second
+relative-time-mark RelativeTime, -- resolution limited by 125 μs tick and resolution/accuracy
+-- settings for relative time service
+relative-rollovers INT-U16, -- number of times the relative time has "rolled over" from
+-- its maximum value to 0
+-- NOTE The relative time will roll over every 6.2 days
+hires-time-mark HighResRelativeTime,
+-- defaults to 0x00000000 if not supported
+ext-time-marks Poc-ExtTimeStampList -- list is empty if no extended timestamps are supported
+}
+--
+-- Time-Zone attribute supports time zone information for UTC
+--
+Poc-UTCTimeZone ::= SEQUENCE {
+time-zone-offset-hours INT-I8, -- device’s local time zone (i.e., at the point of care),
+-- relative to UTC
+-- format is +hh for time zones east of
+-- GMT and -hh for locations west of GMT
+time-zone-offset-minutes INT-U8, -- minutes offset from GMT (if specified); format
+-- conventions are the same as the conventions for hours,
+-- only they are not signed (shall always be a positive value);
+-- default is NULL
+time-zone-label OCTET STRING -- device’s local time zone label, e.g., PST or PDT; see
+-- device’s Poc-Locale attribute for string encoding
+}
+--
+-- Daylight-Savings-Transition attribute specifies the settings for the next transition to/from daylight savings time
+--
+Poc-DaylightSavingsTransition ::= SEQUENCE {
+transition-date AbsoluteTime, -- device’s local date/time when the daylight savings
+-- transition will occur
+next-offset Poc-UTCTimeZone -- new local time zone offset and label after transition date
+-- NOTE May be same as previous value
+}
+--
+-- Next-Leap-Seconds attribute specifies the settings for the next leap-seconds transition
+--
+Poc-LeapSecondsTransition ::= SEQUENCE {
+transition-date Poc-Date, -- device’s local date when the transition will occur;
+-- adjustment occurs at the end (i.e., 23:59:59Z) of
+-- the specified date
+next-cum-leap-seconds INT-U32 -- next cumulative leap-seconds value (see
+-- Cumulative-Leap-Seconds in Table 7.47)
+-- NOTE May be same as previous value
+}
+
+--
+-- Time zone information to be set
+--
+Poc-SetTimeZoneInvoke ::= SEQUENCE {
+time-zone Poc-UTCTimeZone, -- current time zone to be used by device
+next-time-zone Poc-DaylightSavingsTransition
+-- information for the next transition to/from daylight
+-- savings time
+}
+--
+-- Cumulative leap-seconds information to be set
+--
+Poc-SetLeapSecondsInvoke ::= SEQUENCE {
+leap-seconds-cum INT-I32, -- cumulative leap-seconds, which when subtracted from
+-- S/NTP seconds yields UTC seconds
+next-leap-seconds Poc-LeapSecondsTransition
+-- date of transition from previous to new cumulative
+-- leap-second value + new value
+}
+
+--
+-- Clock status update information is sent, for example, when the relative time setting rolls over to 0 or when the
+-- time is changed by the device operator
+--
+Poc-ClockStatusUpdateInfo ::= SEQUENCE {
+date-time-status Poc-DateTimeStatus, -- current clock/time usage status
+time-sync Poc-AbsoluteRelativeTimeSync
+-- current time synchronization values
+}
+
+--
+-- Activity-Indicator attribute can be set by a remote system to indicate that remote control is active
+--
+Poc-ScoActivityIndicator ::= INTEGER {
+act-ind-off(0),
+act-ind-on(1),
+act-ind-blinking(2)
+}
+--(0..65535)
+--
+-- Sco-Capability bits
+--
+Poc-ScoCapability ::= BIT STRING {
+act-indicator(0), -- supports activity indicator
+sco-locks(1), -- at least one operation sets the SCO lock flag
+sco-ctxt-help(8) -- SCO supports context-dependent dynamic help
+}(SIZE(16))
+
+Poc-OpModType ::= INTEGER {
+op-replace(0), -- normally replace value of virtual attribute
+op-setToDefault(3), -- set to default value if this is supported
+op-invokeAction(10), -- needed for singular action type of operations
+op-invokeActionWithArgs(15) -- action with arguments
+}
+--(0..65535)
+
+Poc-OpInvokeElement ::= SEQUENCE {
+op-class-id OID-Type, -- from object-oriented nomenclature partition
+op-instance-no InstNumber,
+op-mod-type Poc-OpModType,
+attributes AttributeList
+}
+
+Poc-OpInvokeList ::= SEQUENCE OF Poc-OpInvokeElement
+
+--
+-- Operation-Invoke method has an additional security mechanism
+--
+Poc-OperationInvoke ::= SEQUENCE {
+checksum INT-I16, -- 16-bit twos complement
+invoke-cookie INT-U32, -- arbitrary ID mirrored back in resulting updates
+op-elem-list Poc-OpInvokeList
+}
+
+--
+
+
+--
+-- Poc-Result confirms reception (and execution) of operations
+-- Updated attributes are communicated via normal update method (e.g., scanner) to avoid inconsistencies
+--
+
+Poc-OpInvResult ::= INTEGER {
+op-successful(0),
+op-failure(1)
+}
+--(0..65535)
+
+Poc-OperationInvokeResult ::= SEQUENCE {
+invoke-cookie INT-U32,
+result Poc-OpInvResult
+}
+
+--
+-- The following types allow the retrieval of dynamic help information that is SCO or Operation object
+-- context-dependent (i.e., state-dependent)
+--
+
+Poc-CtxtHelp ::= CHOICE {
+text-string [1] EXPLICIT OCTET STRING,
+oid [8] EXPLICIT OID-Type
+}
+
+Poc-CtxtHelpRequest ::= SEQUENCE {
+type OID-Type, -- either Operation object class ID or SCO class ID
+op-instance-no InstNumber -- operation instance number (0 if SCO is addressed)
+}
+Poc-CtxtHelpResult ::= SEQUENCE {
+type OID-Type, -- either Operation object class ID or SCO class ID
+op-instance-no InstNumber,
+hold-time RelativeTime, -- how long to display help; 0 if not applicable
+help Poc-CtxtHelp
+}
+
+
+--
+-- An operating request may append additional information
+--
+Poc-ScoOperReqSpec ::= SEQUENCE {
+op-req-id PrivateOid, -- device- or manufacturer-specific
+op-req-info ANY DEFINED BY op-req-id
+}
+--
+-- SCO-Operation-Invoke-Error notification
+--
+Poc-ScoOperInvokeError ::= SEQUENCE {
+invoke-cookie INT-U32,
+op-error INTEGER {
+op-err-unspec(0),
+checksum-error(1),
+sco-lock-violation(2),
+unknown-operation(3),
+invalid-value(4),
+invalid-mod-type(5)
+},
+--(0..65535)
+failed-operation-list SEQUENCE OF InstNumber
+}
+
+--
+-- Operation options
+--
+Poc-OpOptions ::= BIT STRING {
+needs-confirmation(0),
+supports-default(1), -- a default value is supported for the virtual attributes
+sets-sco-lock(2), -- needs transaction processing to avoid side effects
+is-setting(3), -- value preserved over system power fail
+op-dependency(6), -- operation has dependencies to others
+-- (always set if sets-sco-lock bit is set)
+op-auto-repeat(7), -- supports auto repeat
+op-ctxt-help(8) -- provides context-dependent help via SCO action
+}(SIZE(16))
+--
+-- Level
+--
+Poc-OpLevel ::= BIT STRING {
+op-level-basic(0), -- a normal operation
+op-level-advanced(1), -- an advanced operation
+op-level-professional(2),
+op-item-normal(8), -- operation modifies a normal user item
+op-item-config(9), -- operation modifies a configuration item
+op-item-service(10) -- operation modifies a service item (not
+-- used by regular operator)
+}(SIZE(16))
+--
+-- Field for grouping operations (i.e., defines logical relations); can be used to organize operations in a useful
+-- sequence on an operator interface (i.e., display)
+--
+Poc-OpGrouping ::= SEQUENCE {
+group INT-U8,
+priority INT-U8
+}
+
+--
+-- Operation-Spec attribute indicates what this operation really does
+--
+Poc-OperSpec ::= SEQUENCE {
+vattr-id OID-Type, -- ID of the virtual attribute that is changed by operation
+op-target OID-Type, -- from metric or object-oriented nomenclature partition
+options Poc-OpOptions, -- special options
+level Poc-OpLevel, -- range of importance
+grouping Poc-OpGrouping -- to describe relations between operations
+}
+
+--
+-- Operation texts
+--
+Poc-OperTextStrings ::= SEQUENCE {
+label OCTET STRING, -- the label string indicates the meaning of the operation
+help OCTET STRING, -- the help string may contain additional help for the user
+confirm OCTET STRING -- the confirm string is shown by manager to a user to
+-- reconfirm the operation (e.g., "do you really want to
+-- shut down?")
+}
+
+--
+-- Value with a unit/dimension code
+--
+Poc-SelectUValueEntry ::= SEQUENCE {
+value FLOAT-Type,
+m-units OID-Type -- from dimensions nomenclature partition
+}
+
+--
+-- Select-List attribute defines valid selections
+--
+Poc-SelectList ::= CHOICE {
+oid-list [1] EXPLICIT SEQUENCE OF OID-Type,
+value-list [3] EXPLICIT SEQUENCE OF FLOAT-Type,
+value-u-list [4] EXPLICIT SEQUENCE OF Poc-SelectUValueEntry,
+string-list [5] EXPLICIT SEQUENCE OF OCTET STRING
+}
+
+
+
+--
+-- Set-Value-Range attribute defines range and minimum resolution
+--
+Poc-OpSetValueRange ::= SEQUENCE {
+minimum FLOAT-Type,
+maximum FLOAT-Type,
+resolution FLOAT-Type
+}
+--
+-- Step-Width attribute is an ordered (in ascending order) array of ranges and corresponding minimum
+-- step widths; the lower edge is defined in the minimum value of the range specification
+--
+
+Poc-StepWidthEntry ::= SEQUENCE {
+upper-edge FLOAT-Type,
+step-width FLOAT-Type
+}
+
+Poc-OpValStepWidth ::= SEQUENCE OF Poc-StepWidthEntry
+
+--
+-- Options for the string
+--
+Poc-SetStrOpt ::= BIT STRING {
+setstr-null-terminated(0), -- string is terminated with NULL character
+setstr-displayable(1), -- string is displayable
+setstr-var-length(2), -- string has variable length (up to maximum)
+setstr-hidden-val(3) -- actual contents is hidden, e.g., for password entry
+}(SIZE(16))
+
+--
+-- Set-String-Spec attribute
+--
+Poc-SetStringSpec ::= SEQUENCE {
+max-str-len INT-U16, -- maximum supported string length
+char-size INT-U16, -- character size in bits, e.g., 7, 8, or 16
+set-str-opt Poc-SetStrOpt -- special option bits
+}
+
+
+--
+-- Toggle-State attribute
+--
+Poc-ToggleState ::= INTEGER {
+tog-state0(0),
+tog-state1(1)
+}
+--(0..65535)
+--
+-- Each state has a label
+--
+Poc-ToggleLabelStrings ::= SEQUENCE {
+lbl-state0 OCTET STRING,
+lbl-state1 OCTET STRING
+}
+
+--
+-- Alert operation static flags indicate which on/off flags are supported
+--
+Poc-AlOpCapab ::= BIT STRING {
+low-limit-sup(1), -- supports low limit
+high-limit-sup(2), -- supports high limit
+auto-limit-sup(5), -- supports automatic limits
+low-lim-on-off-sup(8), -- supports to switch on/off low limit
+high-lim-on-off-sup(9), -- supports to switch on/off high limit
+lim-on-off-sup(10) -- supports to switch on/off the complete alarm
+}(SIZE(16))
+
+
+--
+-- Alert-Op-Text-String attribute assigns individual labels to upper and lower alarm limit
+--
+Poc-AlertOpTextString ::= SEQUENCE {
+lower-text OCTET STRING,
+upper-text OCTET STRING
+}
+
+--
+-- Current-Range attribute defines the current upper and lower range values
+--
+Poc-CurrentRange ::= SEQUENCE {
+lower FLOAT-Type,
+upper FLOAT-Type
+}
+--
+-- Range-Op-Text attribute assigns labels to the upper and lower boundaries
+--
+Poc-RangeOpText ::= SEQUENCE {
+low-text OCTET STRING, -- printable label text for low value
+high-text OCTET STRING -- printable label text for high value
+}
+
+--
+-- List of objects for which scanned attributes are refreshed
+-- If list is empty, all objects in the scan list are refreshed
+-- If scanned-attribute is 0 (NOS), all attributes of that object that are scanned are refreshed
+-- If the object-glb-handle is 0 (in all components), the specified attribute ID is refreshed for all objects
+-- in the scan list
+--
+
+Poc-RefreshObjEntry ::= SEQUENCE {
+object-glb-handle Poc-GLB-HANDLE,
+scanned-attribute OID-Type -- attribute ID from object-oriented nomenclature partition
+}
+
+Poc-RefreshObjList ::= SEQUENCE OF Poc-RefreshObjEntry
+
+
+--
+-- A scanner may scan objects from multiple device contexts
+-- For efficiency, scanned data that belongs to a single device context is grouped together
+--
+
+Poc-SingleCtxtScan ::= SEQUENCE {
+context-id Poc-MdsContext,
+scan-info SEQUENCE OF ObservationScan
+}
+
+Poc-ScanReportInfo ::= SEQUENCE {
+scan-report-no INT-U16, -- counter for detection of missing events
+glb-scan-info SEQUENCE OF Poc-SingleCtxtScan
+}
+
+
+--
+-- Scan-List attribute determines which object attributes are observed
+--
+-- NOTES
+-- 1 If the scan list is empty, an episodic scanner has to send empty event reports
+-- 2 The scan list will typically contain attribute group IDs for specific objects
+--
+
+Poc-ScanEntry ::= SEQUENCE {
+object-glb-handle Poc-GLB-HANDLE, -- works for all objects with name binding handle
+scanned-attribute OID-Type -- could also be attribute group ID
+}
+
+
+Poc-ScanList ::= SEQUENCE OF Poc-ScanEntry
+
+--
+-- Even a configurable scanner may restrict the way it can be configured
+-- If Scan-Config-Limit attribute is absent, the scanner is fully configurable
+--
+Poc-ScanConfigLimit ::= BIT STRING {
+no-scan-delete(0), -- scanner cannot be deleted
+no-scan-list-mod(1), -- scan list cannot be dynamically modified
+auto-init-scan-list(3), -- scan list is automatically initialized after scanner create
+auto-updt-scan-list(4) -- scan list is automatically updated in case of
+-- configuration change
+}(SIZE(16))
+
+--
+-- Scan-Extensibility attribute defines if the scanner includes all observations in the Poc-ScanReportInfo event
+-- parameter or if it includes just the latest observation (i.e., superpositive)
+--
+Poc-ScanExtend ::= INTEGER {
+extensive(0), -- all attribute changes in the scan period are included
+superpositive(1), -- only the last attribute change is included
+superpositive-avg(2) -- superpositive, but all values in period are averaged
+}
+--(0..65535)
+
+--
+-- Event report contains the observed values of scanned Real Time Sample Array objects
+--
+
+Poc-RtsaObservationScan ::= SEQUENCE {
+handle HANDLE,
+observation Poc-SaObsValue
+}
+
+Poc-SingleCtxtFastScan ::= SEQUENCE {
+context-id Poc-MdsContext,
+scan-info SEQUENCE OF Poc-RtsaObservationScan
+}
+
+Poc-FastScanReportInfo ::= SEQUENCE {
+scan-report-no INT-U16,
+glb-scan-info SEQUENCE OF Poc-SingleCtxtFastScan
+}
+
+
+
+-- Context-Mode attribute determines if the context scanner sends create notifications for the maximum set of
+-- object instances in the MDIB (and requires no delete notifications) or for active objects only
+--
+Poc-ContextMode ::= INTEGER {
+static-mode(0),
+dynamic-mode(1)
+}
+--(0..65535)
+
+--
+-- Now finally the new object itself
+--
+Poc-CreatedObject ::= SEQUENCE {
+class-id Poc-ManagedObjectId,
+attributes AttributeList
+}
+
+--
+-- A single new entry for one parent object, necessary to construct hierarchy in MDIB
+--
+Poc-CreateEntry ::= SEQUENCE {
+superior-object Poc-ManagedObjectId,
+created-object SEQUENCE OF Poc-CreatedObject
+}
+
+--
+-- Object-Create-Notification event contains type, ID, and attribute information about new object instances
+-- in the MDIB
+--
+Poc-ObjCreateInfo ::= SEQUENCE {
+scan-report-no INT-U16,
+scan-report-info SEQUENCE OF Poc-CreateEntry
+}
+
+
+--
+-- Object-Delete-Notification event implicitly deletes all child objects as well
+--
+Poc-ObjDeleteInfo ::= SEQUENCE {
+scan-report-no INT-U16,
+object-list SEQUENCE OF Poc-ManagedObjectId
+}
+
+--
+-- Support data types
+--
+Poc-OpElemAttr ::= SEQUENCE {
+op-class-id OID-Type,
+op-instance-no InstNumber,
+attributes AttributeList
+}
+
+Poc-OpElemAttrList ::= SEQUENCE OF Poc-OpElemAttr
+
+Poc-OpElem ::= SEQUENCE {
+op-class-id OID-Type,
+op-instance-no InstNumber
+}
+--
+-- Create and delete operations
+--
+
+Poc-OpCreateEntry ::= SEQUENCE {
+sco-glb-handle Poc-GLB-HANDLE,
+created-op-list Poc-OpElemAttrList
+}
+
+Poc-OpCreateInfo ::= SEQUENCE {
+scan-report-no INT-U16,
+scan-info SEQUENCE OF Poc-OpCreateEntry
+}
+
+
+Poc-OpDeleteEntry ::= SEQUENCE {
+sco-glb-handle Poc-GLB-HANDLE,
+deleted-op-list SEQUENCE OF Poc-OpElem
+}
+
+Poc-OpDeleteInfo ::= SEQUENCE {
+scan-report-no INT-U16,
+deleted-op-list SEQUENCE OF Poc-OpDeleteEntry
+}
+
+
+--
+-- Report of Operation object attributes (from multiple contexts, if necessary)
+--
+
+--
+-- The scanned information contains SCO transaction attributes and Operation object attributes
+--
+Poc-OpAttributeScan ::= SEQUENCE {
+sco-handle HANDLE,
+invoke-cookie INT-U32,
+lock-state Poc-AdministrativeState,
+op-elem-updt-list Poc-OpElemAttrList
+}
+
+Poc-SingleCtxtOperScan ::= SEQUENCE {
+context-id Poc-MdsContext,
+scan-info SEQUENCE OF Poc-OpAttributeScan
+}
+
+Poc-OpAttributeInfo ::= SEQUENCE {
+scan-report-no INT-U16,
+glb-scan-info SEQUENCE OF Poc-SingleCtxtOperScan
+}
+
+--
+-- Capability attribute specifies the Communication Controller object
+--
+Poc-CcCapability ::= BIT STRING {
+cc-sup-ext-mgmt-protocol(0) -- Communication Controller object supports an external
+-- management protocol (e.g., SNMP); if this bit is set, then
+-- the presence of the CC-Ext-Mgmt-Proto-Id attribute is
+-- required
+}(SIZE(16))
+--
+-- CC-OID data type is a regular 16-bit OID from the infrastructure elements nomenclature partition
+--
+Poc-CC-Oid ::= OID-Type
+--
+-- The following is a list of network management protocols; the value range from 32768 to 65535 is reserved
+-- for manufacturer-specific protocols
+--
+Poc-CcExtMgmtProto ::= INTEGER {
+mgmt-proto-snmp-v1(1), -- Simple Network Management Protocol Version 1
+mgmt-proto-snmp-v2(2), -- Simple Network Management Protocol Version 2
+mgmt-proto-snmp-v3(3), -- Simple Network Management Protocol Version 3
+mgmt-proto-cmip(16) -- Common Management Information Protocol
+}
+--(0..65535)
+
+--
+-- Data type for the ACTION service
+-- One request can retrieve data for one device interface only
+--
+-- NOTE If the mib-id-list type is empty, no MibElement data are returned in the response; valid entries in the
+-- mib-id-list type are defined in the Mib-Element-List attribute of the Device Interface MibElement object
+--
+
+Poc-MibIdList ::= SEQUENCE OF Poc-CC-Oid
+
+Poc-GetMibDataRequest ::= SEQUENCE {
+dif-index INT-U16,
+mib-id-list Poc-MibIdList
+}
+--
+-- Data type for the ACTION service result
+--
+
+Poc-MibDataEntry ::= SEQUENCE {
+mib-id Poc-CC-Oid,
+mib-attributes AttributeList
+}
+
+Poc-MibDataList ::= SEQUENCE OF Poc-MibDataEntry
+
+Poc-GetMibDataResult ::= SEQUENCE {
+dif-index INT-U16,
+mib-data-list Poc-MibDataList
+}
+
+
+--
+-- Supported-Profiles attribute defines which profiles are supported by the Device Interface object; entries
+-- in the list are Profile Support Attribute IDs as used in the ACSE user information structure used for
+-- negotiating the active profile (see definition of application profiles) (entries in the list are from the
+-- infrastructure nomenclature partition)
+--
+Poc-SupportedProfileList ::= SEQUENCE OF Poc-CC-Oid
+--
+-- The Mib-Element-List attribute defines which MibElement objects are supported by the Device Interface
+-- object (entries in the list are from the infrastructure nomenclature partition)
+--
+Poc-MibElementList ::= SEQUENCE OF Poc-CC-Oid
+-- State of the communication port
+--
+Poc-DifMibPortState ::= BIT STRING {
+difmib-port-enabled(0),
+difmib-port-connected(1), -- port physically connected to line/network
+difmib-port-associated(2), -- logical connection active on port
+difmib-port-failure(15) -- port is in a hardware failure state
+}(SIZE(16))
+
+--
+-- The gauge type (from IETF RFC 1155) represents a non-negative integer that may increase or decrease, but
+-- that latches at a maximum value
+--
+Poc-MibCcGauge ::= INT-U32
+--
+-- The counter type (from IETF RFC 1155) represents a non-negative integer that monotonically increases until
+-- it reaches a maximum value, at which time it wraps around and starts increasing again from 0
+--
+Poc-MibCcCounter ::= INT-U32
+--
+-- The communication mode type represents the communication modes that are supported by the device interface.
+--
+Poc-MibCcCommMode ::= BIT STRING {
+comm-mode-simplex(0),
+comm-mode-half-duplex(1),
+comm-mode-full-duplex(2)
+}(SIZE(32))
+
+--
+-- Protection attribute defines the mechanism used for access control; this mechanism is vendor- or
+-- implementation-specific
+--
+Poc-ArchiveProtection ::= SEQUENCE {
+protection-type PrivateOid,
+protection-key ANY DEFINED BY protection-type
+}
+
+--
+-- Authorization-Level attribute defines the access rights used for access control; this mechanism is vendor-
+-- or implementation-specific
+--
+Poc-Authorization ::= SEQUENCE {
+authorization-type PrivateOid,
+authorization-key ANY DEFINED BY authorization-type
+}
+
+-- State of the Patient Demographics object
+--
+Poc-PatDemoState ::= INTEGER {
+empty(0),
+pre-admitted(1),
+admitted(2),
+discharged(8)
+}
+--(0..65535)
+--
+-- Patient demographics measured value
+--
+Poc-PatMeasure ::= SEQUENCE {
+value FLOAT-Type,
+m-unit OID-Type -- code for units of measure
+}
+--
+-- Patient sex according to ISO/IEC 5218
+--
+Poc-PatientSex ::= INTEGER {
+sex-unknown(0),
+male(1),
+female(2),
+sex-unspecified(9)
+}
+--(0..65535)
+
+--
+-- Patient-Type attribute
+--
+Poc-PatientType ::= INTEGER {
+pt-unspecified(0),
+adult(1),
+pediatric(2),
+neonatal(3)
+}
+--(0..65535)
+--
+-- Patient race according to the Standard Communications Protocol [for computer-assisted] Electrocardiography
+--
+Poc-PatientRace ::= INTEGER {
+race-unspecified(0),
+race-caucasian(1),
+race-black(2),
+race-oriental(3)
+}
+--(0..65535)
+
+--
+-- Admit-Patient method
+--
+Poc-AdmitPatInfo ::= AttributeList
+
+Poc-EventReportArgument ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+eventTime RelativeTime,
+eventType OID-Type,
+eventInfo ANY DEFINED BY eventType
+}
+
+Poc-EventReportResult ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+currentTime RelativeTime,
+eventType OID-Type,
+eventReplyInfo ANY DEFINED BY eventType
+--NOTE: each object class should define specific eventType format;
+--as a result,
+--It is not specified in this document. For the DIM, refer to
+--individual object class
+--\94ReplyInfo\94 definition.
+}
+
+Poc-Scope ::= INTEGER { base-object(0) } 
+-- (0.. 4294967295) see footnote15
+Poc-NoSuchAction ::= SEQUENCE {
+managedObjectClass OID-Type,
+actionType OID-Type
+}
+
+Poc-GetArgument ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+scope Poc-Scope,
+attributeIdList AttributeIdList
+}
+
+Poc-GetResult ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+attributeList AttributeList
+}
+
+Poc-ErrorStatus ::= INTEGER {
+attr-accessDenied(2), -- GET, SET
+attr-noSuchAttribute(5), -- GET, SET
+attr-invalidAttributeValue(6), -- SET
+attr-invalidOperation(24), -- SET
+attr-invalidOperator(25) -- SET
+} 
+--(0..65535)
+
+Poc-ProcessingFailure ::= SEQUENCE {
+error-id OID-Type, -- use MDC
+error-info ANY DEFINED BY error-id
+}
+
+Poc-GetError ::= SEQUENCE {
+errorStatus Poc-ErrorStatus,
+attributeId OID-Type
+}
+
+Poc-GetListError ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+getInfoList SEQUENCE OF Poc-GetError
+}
+
+Poc-SetArgument ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+scope Poc-Scope,
+modificationList ModificationList
+}
+
+Poc-SetResult ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+attributeList AttributeList
+}
+
+Poc-SetError ::= SEQUENCE {
+errorStatus Poc-ErrorStatus,
+modifyOperator ModifyOperator,
+attributeId OID-Type
+}
+
+Poc-SetListError ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+setInfoList SEQUENCE OF Poc-SetError
+}
+
+Poc-ActionInfo ::= SEQUENCE {
+actionType OID-Type,
+actionInfoArgs ANY DEFINED BY actionType
+}
+
+Poc-ActionArgument ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+scope Poc-Scope,
+actionInfo Poc-ActionInfo
+}
+
+Poc-ActionReply ::= SEQUENCE {
+actionType OID-Type,
+actionInfoArgs ANY DEFINED BY actionType
+}
+
+Poc-ActionResult ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+actionReply Poc-ActionReply
+}
+
+Poc-CreateArgument ::= SEQUENCE {
+managedObjectClass OID-Type,
+superiorManagedObject Poc-ManagedObjectId,
+attributeList AttributeList
+}
+Poc-CreateResult ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+attributeList AttributeList
+}
+Poc-DeleteArgument ::= SEQUENCE {
+managedObject Poc-ManagedObjectId,
+scope Poc-Scope
+}
+Poc-DeleteResult ::= SEQUENCE {
+managedObject Poc-ManagedObjectId
+}
+
+
+Poc-NoSuchArgument ::= SEQUENCE {
+managedObjectClass OID-Type,
+eventType OID-Type
+}
+Poc-NoSuchEventType ::= SEQUENCE {
+managedObjectClass OID-Type,
+eventType OID-Type
+}
+
+
+Poc-MdibObjectSupportEntry ::= SEQUENCE {
+object-type TYPE, -- contains OID and nomenclature partition
+max-inst INT-U32 -- maximum number of supported instances
+-- (contains 0xffffffff if not defined)
+}
+
+--
+-- The MdibObjectSupport is a list to flag which objects are used by the implementation
+--
+Poc-MdibObjectSupport ::= SEQUENCE OF Poc-MdibObjectSupportEntry
+
+Poc-ObservationPoll ::= SEQUENCE {
+obj-handle HANDLE, -- unique ID for the object, object class is known
+-- from the polled-obj -type field
+attributes AttributeList
+}
+
+Poc-SingleContextPoll ::= SEQUENCE {
+context-id Poc-MdsContext,
+poll-info SEQUENCE OF Poc-ObservationPoll
+}
+
+--
+-- The PollInfoList is a data structure that corresponds to the event report structure of a Scanner
+-- object as defined in VITAL
+--
+Poc-PollInfoList ::= SEQUENCE OF Poc-SingleContextPoll
+
+--
+-- Poll Request to MDS object can address a single type of objects only to simplify the implementation
+--
+Poc-PollMdibDataReq ::= SEQUENCE {
+poll-number INT-U16, -- will be mirrored back in response
+polled-obj-type TYPE, -- contains object ID and nomenclature partition
+polled-attr-grp OID-Type -- contains 0 for all attribute groups
+}
+
+Poc-PollMibDataReply ::= SEQUENCE {
+poll-number INT-U16, -- will be mirrored back in response
+rel-time-stamp RelativeTime, -- contains 0 if not supported by agent
+abs-time-stamp AbsoluteTime, -- contains 0xff in all fields if not supported
+polled-obj-type TYPE, -- contains object ID and nomenclature partition
+polled-attr-grp OID-Type, -- contains 0 for all attribute groups
+poll-info-list Poc-PollInfoList -- polled data
+}
+
+Poc-PollProfileRevision ::= BIT STRING  {
+poll-profile-rev-0(0) -- revision bit supported by the definitions in this standard
+}(SIZE(32))
+
+Poc-PollProfileOptions ::= BIT STRING  {
+p-opt-dyn-create-objects(1),
+p-opt-dyn-delete-objects(2)
+-- indicates that the object containment tree dynamically changes
+}(SIZE(32))
+
+Poc-PollProfileSupport ::= SEQUENCE {
+poll-profile-revision Poc-PollProfileRevision, --
+min-poll-period RelativeTime,
+max-mtu-rx INT-U32, -- max. receive message size in bytes
+max-mtu-tx INT-U32, -- max. transmit message size in bytes
+max-bw-tx INT-U32, -- max. transmit bandwidth, see note 2
+options Poc-PollProfileOptions, --
+optional-packages AttributeList -- list of optional packages supported
+-- contains optional package specification attribs
+}
+
+Poc-PatDemogOptPackAgt ::= SEQUENCE {
+pat-demog-options BIT STRING {
+pd-opt-supports-discharge(0), -- supports DISCHARGE method
+pd-opt-supports-admit(1), -- supports ADMIT method
+pd-opt-supports-pre-admit(2), -- supports PRE-ADMIT method
+pd-opt-supports-set(8), -- supports set service for individual attributes
+pd-opt-supports-mod-noti(16), -- supports event in case of modifications
+pd-opt-supports-state-noti(17), -- supports event in case of state changes
+pd-opt-supports-var-attrib-set(24), -- supports a variable set of attributes
+pd-opt-supports-var-attrib-size(25) -- variable length attributes are supported
+}(SIZE(32)),
+max-storage-size INT-U32 -- max. size of the attribute list (0 if not applicable)
+}
+
+
+Poc-PatDemogOptPackMgr ::= BIT STRING {
+pd-opt-requires-no-noti(0) -- manager requires that no notifications are sent
+}(SIZE(32))
+
+-- A.2 Medical Device Communication 
+
+-- 
+-- Message frame contains either Association Control APDU or encapsulated data message 
+-- according to the negotiated data protocol. 
+-- 
+ApduType ::= CHOICE { 
+	aarq [57856]  AarqApdu, 	                  -- [0xe200] Association Request APDU 
+	aare [58112]  AareApdu, 	                  -- [0xe300] Association Response APDU 
+	rlrq [58368]  RlrqApdu, 	                  -- [0xe400] Association Release Request APDU 
+	rlre [58624]  RlreApdu, 	                  -- [0xe500] Association Release Response APDU 
+	abrt [58880]  AbrtApdu, 	                  -- [0xe600] Association Abort APDU 
+	prst [59136]  PrstApdu, 	                  -- [0xe700] Presentation APDU according to ISO/IEEE 11073-20601 
+	mdap-rose [59392] Poc-ROSEapdus 	          -- [0xe800] ROSE APDU according to ISO/IEEE 11073-20101 
+								                  -- encoded according to negotiated encoding rules 
+} 
+
+
+--
+-- Poc-OPERATION definition contains values for CMIP*
+--
+Poc-OPERATION ::= INTEGER {
+cmipEventReport(0),
+cmipConfirmedEventReport(1),
+cmipGet(3),
+cmipSet(4),
+cmipConfirmedSet(5),
+cmipAction(6),
+cmipConfirmedAction(7),
+cmipCreate(8),
+cmipDelete(9)
+}
+--(0..65535) normally CHOICE (INT/OID)
+
+Poc-ROIVapdu ::= SEQUENCE {
+invokeID InvokeIDType,
+operation-value Poc-OPERATION,
+argument ANY DEFINED BY operation-value
+}
+
+Poc-operation-result ::= SEQUENCE {
+operation-value Poc-OPERATION,
+result ANY DEFINED BY operation-value
+}
+
+Poc-RORSapdu ::= SEQUENCE {
+invokeID InvokeIDType,
+operation-result Poc-operation-result
+}
+
+--
+-- Poc-ERROR definition contains values for CMIP*
+--
+Poc-ERROR ::= INTEGER {
+noSuchObjectClass(0),
+noSuchObjectInstance(1),
+accessDenied(2),
+noSuchAttribute(5),
+invalidAttributeValue(6),
+getListError(7),
+setListError(8),
+noSuchAction(9),
+processingFailure(10),
+duplicateManagedObjectInstance(11),
+noSuchEventType(13),
+noSuchArgument(14),
+invalidArgumentValue(15),
+invalidScope(16), -- see footnote14
+invalidObjectInstance(17),
+missingAttributeValue(18),
+classInstanceConflict(19),
+mistypedOperation(21),
+noSuchInvokeId(22)
+}
+-- (0..65535)
+
+
+Poc-ROERapdu ::= SEQUENCE {
+invokeID InvokeIDType,
+error-value Poc-ERROR,
+parameter ANY DEFINED BY error-value
+}
+
+
+Poc-ROSEapdus ::= CHOICE {
+roiv-apdu [1] IMPLICIT Poc-ROIVapdu, -- Remote Operation Invoke
+rors-apdu [2] IMPLICIT Poc-RORSapdu, -- Remote Operation Poc-Result
+roer-apdu [3] IMPLICIT Poc-ROERapdu, -- Remote Operation Error
+rorj-apdu [4] IMPLICIT Poc-RORJapdu, -- Remote Operation Reject
+roliv-apdu [5] IMPLICIT Poc-ROLIVapdu -- Linked Invoke
+}
+
+Poc-Problem ::= INTEGER {
+unrecognizedAPDU(0),
+mistypedAPDU(1),
+badlyStructuredAPDU(2),
+duplicateInvocation(100),
+unrecognizedOperation(101),
+mistypedArgument(102),
+resourceLimitation(103),
+initiatorReleasing(104),
+unrecognizedResultInvocation(200),
+resultResponseUnexpected(201),
+mistypedResult(202),
+unrecognizedErrorInvocation(300),
+errorResponseUnexpected(301),
+unrecognizedError(302),
+unexpectedError(303),
+mistypedErrorParameter(304)
+}
+-- (0..65535)
+
+Poc-RORJapdu ::= SEQUENCE {
+invokeID InvokeIDType,
+problem Poc-Problem
+}
+
+Poc-ROLIVapdu ::= SEQUENCE {
+invokeID InvokeIDType, -- uses a special semantic!!
+linkedID InvokeIDType,
+operation-value Poc-OPERATION,
+argument ANY DEFINED BY operation-value
+}
+
+Poc-ROLIV-Invoke-ID ::= SEQUENCE {state INTEGER {
+roliv-first(1), -- this is the first ROLIV apdu
+roliv-not-first-not-last(2),
+roliv-last(3) -- this is the last ROLIV apdu, one RORS apdu will follow
+},
+--(0..255)
+count INT-U8 -- counter starts with value 1 (in first state)
+}
+
+-- A.3 Association Control Protocol 
+
+-- 
+-- Association Request APDU 
+-- 
+AarqApdu ::= SEQUENCE { 
+	assoc-version  AssociationVersion, 
+	data-proto-list  DataProtoList 
+}
+ 
+AssociationVersion ::= BIT STRING  { 
+	assoc-version1(0) -- association protocol version 1 
+} (SIZE(32))
+
+DataProtoList ::= SEQUENCE OF DataProto 
+
+DataProto ::= SEQUENCE { 
+	data-proto-id  DataProtoId, 
+	data-proto-info ANY DEFINED BY data-proto-id 
+}
+ 
+-- All unassigned values are reserved for future expansion and shall not be used. 
+DataProtoId ::= INTEGER { 
+	data-proto-id-empty (0), 
+	data-proto-id-20101 (20101), 	-- data protocol according to ISO/IEEE 11073-20101 
+	data-proto-id-20601 (20601), 	-- data protocol according to ISO/IEEE 11073-20601 
+	data-proto-id-external (65535) 
+} 
+-- (0..65535)
+
+-- 
+-- Association Response APDU 
+-- 
+AareApdu ::= SEQUENCE { 
+	result  AssociateResult, 
+	selected-data-proto DataProto 
+}
+
+-- All unassigned values are reserved for future expansion and shall not be used. 
+AssociateResult ::= INTEGER { 
+	accepted (0), 
+	rejected-permanent (1), 				-- rejected without further details 
+	rejected-transient (2),  				-- rejected due to transient condition 
+	accepted-unknown-config (3), 
+	rejected-no-common-protocol (4), 		-- no common data protocol 
+	rejected-no-common-parameter (5), 		-- no common set of parameters in association information 
+	rejected-unknown (6), 
+	rejected-unauthorized (7), 
+	rejected-unsupported-assoc-version (8) 	-- no common association version 
+} 
+-- (0..65535)
+
+-- 
+-- Association Release Request APDU 
+-- 
+RlrqApdu ::= SEQUENCE { 
+	reason  ReleaseRequestReason 
+}
+
+-- All unassigned values are reserved for future expansion and shall not be used. 
+ReleaseRequestReason ::= INTEGER { 
+	normal (0), 
+	no-more-configurations (1), 
+	configuration-changed (2) 
+} 
+-- (0..65535)
+
+-- 
+-- Association Release Response APDU 
+-- 
+RlreApdu ::= SEQUENCE { 
+	reason  ReleaseResponseReason 
+} 
+
+-- All unassigned values are reserved for future expansion and shall not be used. 
+ReleaseResponseReason::= INTEGER { 
+	normal (0) 
+}
+ --  (0..65535)
+
+-- 
+-- Association Abort APDU 
+-- 
+AbrtApdu ::= SEQUENCE { 
+	reason  AbortReason 
+}
+ 
+-- All unassigned values are reserved for future expansion and shall not be used. 
+AbortReason ::= INTEGER { 
+	undefined (0), 
+	buffer-overflow (1), 
+	response-timeout (2), 
+	configuration-timeout (3) 
+}
+ --(0..65535)
+
+-- 
+-- Presentation APDU 
+-- 
+PrstApdu ::= OCTET STRING 
+
+-- A.3.1 Association Information 
+-- 
+-- If data-proto-id is set to data-proto-id-20101, the data-proto-info field shall be filled with 
+-- MDAP Association Information. 
+-- 
+MdapAssociationInformation ::= SEQUENCE { 
+	encoding-rules EncodingRules, 
+	user-info  MDSEUserInfo 
+}
+ 
+-- All unassigned values are reserved for future expansion and shall not be used. 
+EncodingRules ::= BIT STRING { 
+	enc-rule-mder (0),  		-- medical device encoding rules 
+	enc-rule-xer (1),  			-- XML encoding rules 
+	enc-rule-per (2)  			-- packed encoding rules 
+} (SIZE(16))
+
+NomenclatureVersion ::= BITS-32 -- values reference a specific nomenclature standard
+
+-- 
+-- MDSE User Information according to ISO/IEEE 11073-20101. 
+-- 
+MDSEUserInfo ::= SEQUENCE { 
+	protocolVersion ProtocolVersion, 
+	nomenclatureVersion NomenclatureVersion, 
+	functionalUnits FunctionalUnits, 
+	systemType  SystemType, 
+	startupMode  StartupMode, 
+	optionList  AttributeList, 			-- this field is reserved for future extensibility 
+	supportedAProfiles AttributeList 	-- contains Profile Support attributes 
+} 
+
+ProtocolVersion ::= BIT STRING { 
+	protocol-version1 (0) -- protocol version 1 
+}(SIZE(32))
+ 
+FunctionalUnits ::= BIT STRING { 
+	extendedObjectSelection (0), 	-- supports scope fields other than just base-object 
+									-- Bit 1 reserved [filter(1)] 
+	multipleReply (2)  				-- supports multiple linked replies 
+									-- Bit 3 reserved [extendedService(3)] 
+									-- Bit 4 reserved [cancelGet(4)] 
+}(SIZE(32))
+
+StartupMode ::= BIT STRING { 
+	hot-start (0), 
+	warm-start (1), 
+	cold-start (2) 
+} (SIZE(32))
+
+-- A.3.2 Baseline Profile Support 
+
+-- 
+-- Attribute indicates baseline application profile support. 
+-- 
+BaselineProfileSupport ::= SEQUENCE { 
+	baseline-revision BaselineRevision, 
+	max-mtu-rx  INT-U32, 						-- max. receive message size in bytes 
+	max-mtu-tx  INT-U32, 						-- max. transmit message size in bytes 
+	max-bw-tx  INT-U32, 						-- max. transmit bandwidth 
+	max-mds-hierarchy INT-U16, 					-- max. depth of MDS object hierarchy 
+	options  BaselineOptions, 					-- further specifications 
+	optional-packages AttributeList 			-- list of optional packages supported 
+												-- contains optional package specification attributes 
+}
+ 
+BaselineRevision ::= BIT STRING { 
+	baseline-rev-0 (0) 
+} (SIZE(32))
+
+BaselineOptions ::= BIT STRING { 
+	b-opt-dyn-create-objects (1), 		-- new objects can be added 
+	b-opt-dyn-delete-objects (2) 		-- objects can be deleted 
+} (SIZE(32))
+
+
+ END -- complete
+
+
