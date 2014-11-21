@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-package test.org.ieee.poc;
+package test.ieee.poc;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;

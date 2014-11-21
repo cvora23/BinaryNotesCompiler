@@ -108,6 +108,8 @@ package org.bn;
 */
 
 
+import ieee.poc.coders.mder.MDEREncoder;
+
 import org.bn.coders.*;
 import org.bn.coders.ber.*;
 import org.bn.coders.der.*;
@@ -156,6 +158,10 @@ public class CoderFactory {
         else        
         if(encodingSchema.equalsIgnoreCase("DER")) {
             return new DEREncoder<T>();
+        }
+        else        
+        if(encodingSchema.equalsIgnoreCase("MDER")) {
+            return new MDEREncoder<T>();
         }        
         else                
             return null;

@@ -1,4 +1,4 @@
-package test.org.ieee.poc;
+package test.ieee.poc;
 
 import org.bn.IEncoder;
 import test.org.bn.coders.CoderTestUtilities;

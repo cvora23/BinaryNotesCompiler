@@ -1,4 +1,4 @@
-package test.org.ieee.poc;
+package test.ieee.poc;
 
 import ieee.poc.INT_I16;
 import test.org.bn.coders.ber.BERCoderTestUtils;
