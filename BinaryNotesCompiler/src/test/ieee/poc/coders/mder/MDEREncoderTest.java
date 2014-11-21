@@ -5,7 +5,6 @@ import org.bn.IEncoder;
 
 import test.org.bn.coders.CoderTestUtilities;
 import test.org.bn.coders.EncoderTest;
-import test.org.bn.coders.ber.BEREncoderTest;
 
 public class MDEREncoderTest extends EncoderTest {
     protected CoderFactory coderFactory = new CoderFactory();

@@ -64,38 +64,44 @@ public class MDERCoderTestUtils extends CoderTestUtilities {
 
 	@Override
 	public byte[] createTestIntegerRBytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+                0x03
+            };
 	}
 
 	@Override
 	public byte[] createTestInteger1Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+                0x0F
+            };
 	}
 
 	@Override
 	public byte[] createTestInteger2_12Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+                0x1F,(byte)0xF1
+            };
 	}
 
 	@Override
 	public byte[] createTestInteger2Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+                0x0F,(byte)0xF0
+            };
 	}
 
 	@Override
 	public byte[] createTestInteger3Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+                0x00,(byte)0xFF,(byte)0xF0
+            };
 	}
 
 	@Override
 	public byte[] createTestInteger4Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+        		0x00,(byte)0xF0,(byte)0xF0,(byte)0xF0
+            };
 	}
 
 	@Override
@@ -112,8 +118,9 @@ public class MDERCoderTestUtils extends CoderTestUtilities {
 
 	@Override
 	public byte[] createUnboundedTestIntegerBytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+                0x00,(byte)0xFA,(byte)0xFB,(byte)0xFC
+            };
 	}
 
 	@Override
