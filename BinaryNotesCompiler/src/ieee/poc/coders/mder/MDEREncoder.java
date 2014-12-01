@@ -90,10 +90,17 @@ public class MDEREncoder<T> extends Encoder<T> {
 	}
 
 	@Override
-	public int encodeOctetString(Object object, OutputStream steam,
+	public int encodeOctetString(Object object, OutputStream stream,
 			ElementInfo elementInfo) throws Exception {
-		// TODO Auto-generated method stub
-		return 0;
+        int resultSize = 0, sizeOfString = 0;
+        byte[] buffer = (byte[])object;
+        stream.write( buffer );
+        sizeOfString = buffer.length;
+
+        resultSize += sizeOfString;
+        CoderUtils.checkConstraints(sizeOfString,elementInfo);
+
+        return resultSize;
 	}
 
 	@Override
@@ -119,10 +126,16 @@ public class MDEREncoder<T> extends Encoder<T> {
 	}
 
 	@Override
-	public int encodeString(Object object, OutputStream steam,
+	public int encodeString(Object object, OutputStream stream,
 			ElementInfo elementInfo) throws Exception {
-		// TODO Auto-generated method stub
-		return 0;
+        int resultSize = 0, sizeOfString = 0;
+        byte[] strBuf = CoderUtils.ASN1StringToBuffer(object, elementInfo);
+        stream.write( strBuf );
+        sizeOfString = strBuf.length;
+
+        resultSize += sizeOfString;
+        CoderUtils.checkConstraints(sizeOfString,elementInfo);
+         return resultSize;
 	}
 
 	@Override

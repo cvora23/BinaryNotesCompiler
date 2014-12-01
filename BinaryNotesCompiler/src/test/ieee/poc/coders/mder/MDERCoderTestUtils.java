@@ -1,8 +1,11 @@
 package test.ieee.poc.coders.mder;
 
 import org.bn.types.BitString;
+
 import ieee.poc.*;
 import test.org.bn.coders.CoderTestUtilities;
+import test.org.bn.coders.test_asn.TestOCT;
+import test.org.bn.coders.test_asn.TestPRN;
 
 public class MDERCoderTestUtils extends CoderTestUtilities {
 
@@ -123,16 +126,29 @@ public class MDERCoderTestUtils extends CoderTestUtilities {
             };
 	}
 
+    public TestPRN createTestPRN() {
+        TestPRN value = new TestPRN();
+        value.setValue("Hello");
+        return value;
+    }
+	
 	@Override
 	public byte[] createTestPRNBytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {0x48, 0x65, 0x6C, 0x6C, 0x6F};
 	}
 
 	@Override
+    public TestOCT createTestOCT() {
+        TestOCT value = new TestOCT();
+        value.setValue(new byte[] {(byte)0xFF, 0x03, 0x04});
+        return value;
+    }
+	
+	@Override
 	public byte[] createTestOCTBytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {
+        		(byte)0xFF, 0x03, 0x04
+            };
 	}
 
 	@Override

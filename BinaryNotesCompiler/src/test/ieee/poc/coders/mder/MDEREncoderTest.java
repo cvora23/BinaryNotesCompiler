@@ -22,8 +22,8 @@ public class MDEREncoderTest extends EncoderTest {
     public void testEncodeBitString() throws Exception {
         IEncoder encoder = newEncoder();
         assertNotNull(encoder);
-        printEncoded("TestBitStr test",encoder, coderTestUtils.createTestBitStr());            
-        checkEncoded(encoder, coderTestUtils.createTestBitStr(), coderTestUtils.createTestBitStrBytes());
+        printEncoded("TestBitStr test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBitStr());            
+        checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBitStr(), ((MDERCoderTestUtils) coderTestUtils).createTestBitStrBytes());
         printEncoded("Test Bits-8 test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit8Str());
         checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit8Str(), ((MDERCoderTestUtils) coderTestUtils).createTestBit8StrBytes());
         printEncoded("Test Bits-16 test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit16Str());
@@ -38,6 +38,18 @@ public class MDEREncoderTest extends EncoderTest {
         printEncoded("testEncodeInt16 test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestInt16());            
         checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestInt16(), ((MDERCoderTestUtils) coderTestUtils).createTestInt16Bytes());
     }
+    
+    @Override
+    public void testEncodeString() throws Exception {
+        IEncoder encoder = newEncoder();
+        assertNotNull(encoder);
+        printEncoded("TestPRN",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestPRN());
+        checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestPRN(), ((MDERCoderTestUtils) coderTestUtils).createTestPRNBytes());
+        
+        printEncoded("TestOCT",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestOCT());
+        checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestOCT(), ((MDERCoderTestUtils) coderTestUtils).createTestOCTBytes());        
+    }
+
 
 	@Override
 	protected <T> IEncoder<T> newEncoder() throws Exception {
