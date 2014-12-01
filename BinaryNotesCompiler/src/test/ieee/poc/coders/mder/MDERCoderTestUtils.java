@@ -1,8 +1,8 @@
 package test.ieee.poc.coders.mder;
 
-import ieee.poc.INT_I16;
+import org.bn.types.BitString;
+import ieee.poc.*;
 import test.org.bn.coders.CoderTestUtilities;
-import test.org.bn.coders.ber.BERCoderTestUtils;
 
 public class MDERCoderTestUtils extends CoderTestUtilities {
 
@@ -197,10 +197,40 @@ public class MDERCoderTestUtils extends CoderTestUtilities {
 
 	@Override
 	public byte[] createTestBitStrBytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {(byte)0xAA, (byte)0xBB, (byte)0xCC, (byte)0xDD, (byte)0xF0 };
 	}
 
+    public BITS_8 createTestBit8Str() {
+    	BITS_8 result = new BITS_8();
+        result.setValue(new BitString(new byte[] {(byte)0xAA}));
+        return result;
+    }
+    
+    public byte[] createTestBit8StrBytes(){
+        return new byte[] {(byte)0xAA};
+    }
+    
+    public BITS_16 createTestBit16Str() {
+    	BITS_16 result = new BITS_16();
+        result.setValue(new BitString(new byte[] {(byte)0xAA, (byte)0xBB}));
+        return result;
+    }
+    
+    public byte[] createTestBit16StrBytes(){
+        return new byte[] {(byte)0xAA, (byte)0xBB};
+    }
+
+    public BITS_32 createTestBit32Str() {
+    	BITS_32 result = new BITS_32();
+        result.setValue(new BitString(new byte[] {(byte)0xAA, (byte)0xBB, (byte)0xCC, (byte)0xDD}));
+        return result;
+    }
+    
+    public byte[] createTestBit32StrBytes(){
+        return new byte[] {(byte)0xAA, (byte)0xBB, (byte)0xCC, (byte)0xDD};
+    }
+
+	
 	@Override
 	public byte[] createTestBitStrSmallBytes() {
 		// TODO Auto-generated method stub

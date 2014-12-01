@@ -9,6 +9,7 @@ import org.bn.coders.Encoder;
 import org.bn.coders.TagClass;
 import org.bn.coders.UniversalTag;
 import org.bn.coders.ber.BERCoderUtils;
+import org.bn.types.BitString;
 import org.bn.utils.ReverseByteArrayOutputStream;
 
 public class MDEREncoder<T> extends Encoder<T> {
@@ -96,10 +97,18 @@ public class MDEREncoder<T> extends Encoder<T> {
 	}
 
 	@Override
-	public int encodeBitString(Object object, OutputStream steam,
+	public int encodeBitString(Object object, OutputStream stream,
 			ElementInfo elementInfo) throws Exception {
-		// TODO Auto-generated method stub
-		return 0;
+        int resultSize = 0, sizeOfString = 0;
+        BitString str = (BitString)object;
+        CoderUtils.checkConstraints(str.getLengthInBits(), elementInfo);
+        
+        byte[] buffer = str.getValue();
+        stream.write( buffer );
+        sizeOfString = buffer.length;
+
+        resultSize += sizeOfString;
+        return resultSize;
 	}
 
 	@Override

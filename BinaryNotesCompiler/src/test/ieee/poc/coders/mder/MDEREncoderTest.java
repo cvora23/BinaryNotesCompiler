@@ -17,6 +17,20 @@ public class MDEREncoderTest extends EncoderTest {
 		super(sTestName, coderUtils);
 		// TODO Auto-generated constructor stub
 	}
+	
+	@Override
+    public void testEncodeBitString() throws Exception {
+        IEncoder encoder = newEncoder();
+        assertNotNull(encoder);
+        printEncoded("TestBitStr test",encoder, coderTestUtils.createTestBitStr());            
+        checkEncoded(encoder, coderTestUtils.createTestBitStr(), coderTestUtils.createTestBitStrBytes());
+        printEncoded("Test Bits-8 test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit8Str());
+        checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit8Str(), ((MDERCoderTestUtils) coderTestUtils).createTestBit8StrBytes());
+        printEncoded("Test Bits-16 test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit16Str());
+        checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit16Str(), ((MDERCoderTestUtils) coderTestUtils).createTestBit16StrBytes());
+        printEncoded("Test Bits-32 test",encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit32Str());
+        checkEncoded(encoder, ((MDERCoderTestUtils) coderTestUtils).createTestBit32Str(), ((MDERCoderTestUtils) coderTestUtils).createTestBit32StrBytes());
+    }
 	    
     public void testEncodeInt16() throws Exception {
         IEncoder  encoder = newEncoder();
