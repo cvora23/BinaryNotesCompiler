@@ -297,26 +297,22 @@ public class MDERCoderTestUtils extends CoderTestUtilities {
 
 	@Override
 	public byte[] createTestReal0_5Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {(byte)0x80, (byte)0xFF, 0x01} ;
 	}
 
 	@Override
 	public byte[] createTestReal1_5Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {(byte)0x80, (byte)0xFF, 0x03 };
 	}
 
 	@Override
 	public byte[] createTestReal2Bytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {(byte)0x80, 0x01,0x01 };
 	}
 
 	@Override
 	public byte[] createTestRealBigBytes() {
-		// TODO Auto-generated method stub
-		return null;
+        return new byte[] {(byte)0x80, (byte)0xFD, 0x18,0x6D,0x21};
 	}
 
 	@Override
