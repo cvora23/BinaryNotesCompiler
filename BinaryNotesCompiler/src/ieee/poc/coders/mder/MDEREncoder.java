@@ -50,39 +50,14 @@ public class MDEREncoder<T> extends Encoder<T> {
             throw new IllegalArgumentException() ;
         }
         else 
-        if (length < 128) {
-            stream.write(length);
-            resultSize++;
-        }
-        else 
-        if (length < 256) {
-            stream.write(length);
-            stream.write((byte)0x81);
-            resultSize+=2;
-        }
-        else 
         if (length < 65536) {
             stream.write((byte)(length)) ;
             stream.write((byte)(length >> 8));
-            stream.write((byte)0x82);
-            resultSize+=3;
+            resultSize+=2;
         }
-        else 
-        if (length < 16777126) {
-            stream.write((byte)(length));
-            stream.write((byte)(length >> 8)) ;
-            stream.write((byte)(length >> 16)) ;
-            stream.write((byte)0x83);
-            resultSize+=4;
+        else{
+            throw new IllegalArgumentException() ;
         }
-        else {
-            stream.write((byte)(length));
-            stream.write((byte)(length >> 8));
-            stream.write((byte)(length >> 16));
-            stream.write((byte)(length >> 24));
-            stream.write((byte)0x84);
-            resultSize+=5;
-        } 
         return resultSize;
     }
 
@@ -108,6 +83,7 @@ public class MDEREncoder<T> extends Encoder<T> {
         sizeOfString = buffer.length;
         CoderUtils.checkConstraints(sizeOfString,elementInfo);
         resultSize += sizeOfString;
+        resultSize += encodeLength(sizeOfString, stream);
         return resultSize;
 	}
 
