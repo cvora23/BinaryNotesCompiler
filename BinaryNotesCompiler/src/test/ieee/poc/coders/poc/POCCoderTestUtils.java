@@ -46,16 +46,7 @@ public class POCCoderTestUtils extends CoderTestUtilities{
     	result.setData_proto_list(dataProtoList);
     	return result;
     }
-    
-    public DataProto createDataProto(){
-    	
-    	DataProto dataProto = new DataProto();
-    	dataProto.setData_proto_id(new DataProtoId((long) 20101));
-    	dataProto.setData_proto_info(new byte[] {(byte)0xAA,(byte)0xBB,(byte)0xCC,(byte)0xDD});
-    	
-    	return dataProto;
-    }
-	
+
 	@Override
 	public byte[] createNullSeqBytes() {
 		// TODO Auto-generated method stub

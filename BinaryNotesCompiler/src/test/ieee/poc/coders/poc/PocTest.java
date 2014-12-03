@@ -17,26 +17,12 @@ public class PocTest extends EncoderTest{
 	public PocTest(String sTestName) {
 		super(sTestName, new POCCoderTestUtils());		
 	}
-
-    public void testEncodeInt16() throws Exception {
-        IEncoder  encoder = newEncoder();
-        assertNotNull(encoder);
-        printEncoded("testEncodeInt16 test",encoder, ((POCCoderTestUtils) coderTestUtils).createTestInt16());            
-        checkEncoded(encoder, ((POCCoderTestUtils) coderTestUtils).createTestInt16(), ((POCCoderTestUtils) coderTestUtils).createTestInt16Bytes());
-    }
     
     public void testAarq() throws Exception {
         IEncoder  encoder = newEncoder();
         assertNotNull(encoder);
         printEncoded("testAarq test",encoder, ((POCCoderTestUtils) coderTestUtils).createTestAarq());            
     }
-
-    public void testDataProto() throws Exception {
-        IEncoder  encoder = newEncoder();
-        assertNotNull(encoder);
-        printEncoded("testDataProto test",encoder, ((POCCoderTestUtils) coderTestUtils).createDataProto());            
-    }
-    
 	
 	@Override
 	protected <T> IEncoder<T> newEncoder() throws Exception {
