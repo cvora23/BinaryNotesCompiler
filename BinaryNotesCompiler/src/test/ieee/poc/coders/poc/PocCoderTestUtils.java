@@ -12,9 +12,9 @@ import ieee.poc.DataProtoList;
 import ieee.poc.INT_I16;
 import test.org.bn.coders.CoderTestUtilities;
 
-public class POCCoderTestUtils extends CoderTestUtilities{
+public class PocCoderTestUtils extends CoderTestUtilities{
 
-	public POCCoderTestUtils() {
+	public PocCoderTestUtils() {
 		// TODO Auto-generated constructor stub
 	}
 

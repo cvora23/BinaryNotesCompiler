@@ -15,13 +15,13 @@ public class PocTest extends EncoderTest{
 	}
 	
 	public PocTest(String sTestName) {
-		super(sTestName, new POCCoderTestUtils());		
+		super(sTestName, new PocCoderTestUtils());		
 	}
     
     public void testAarq() throws Exception {
         IEncoder  encoder = newEncoder();
         assertNotNull(encoder);
-        printEncoded("testAarq test",encoder, ((POCCoderTestUtils) coderTestUtils).createTestAarq());            
+        printEncoded("testAarq test",encoder, ((PocCoderTestUtils) coderTestUtils).createTestAarq());            
     }
 	
 	@Override
